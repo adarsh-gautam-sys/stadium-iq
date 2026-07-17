@@ -8,10 +8,10 @@ $REGION       = "us-central1"
 $IMAGE        = "gcr.io/$PROJECT_ID/$SERVICE_NAME"
 $VERSION      = "1.0.0"
 
-if (-not $env:GEMINI_API_KEY) {
-    $env:GEMINI_API_KEY = "***REDACTED_API_KEY***"
+# Load GEMINI_API_KEY from .env if not set in shell environment
+if (-not $env:GEMINI_API_KEY -and (Test-Path ".env")) {
+    $env:GEMINI_API_KEY = (Get-Content ".env" | Select-String -Pattern "^GEMINI_API_KEY=(.+)$" | ForEach-Object { $_.Matches.Groups[1].Value }).Trim()
 }
-
 
 Write-Host "=== StadiumIQ Cloud Run Deployment ===" -ForegroundColor Cyan
 Write-Host "Project:  $PROJECT_ID"
