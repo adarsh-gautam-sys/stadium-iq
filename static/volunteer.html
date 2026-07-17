@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="StadiumIQ Volunteer Dashboard — Zone briefings, fan assistance scripts, crowd advisories, and personal navigation for FIFA World Cup 2026 volunteers." />
+  <meta name="theme-color" content="#050d1a" />
+  <title>StadiumIQ — Volunteer Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="/static/base.css" />
+  <link rel="stylesheet" href="/static/dashboard-volunteer.css" />
+</head>
+<body>
+  <a class="skip-link" href="#results">Skip to guidance results</a>
+
+  <!-- ── Sticky header ──────────────────────────────────────────────────── -->
+  <header class="dash-header" role="banner" aria-label="Volunteer dashboard header">
+    <a href="/" class="logo" aria-label="StadiumIQ home">⚽ StadiumIQ</a>
+    <span class="dash-header-center" style="color:var(--clr-role)" aria-current="page">Volunteer Dashboard</span>
+    <div class="dash-header-right">
+      <span class="live-dot" aria-hidden="true"></span>
+      <span style="font-size:.75rem;color:var(--clr-muted)">Live</span>
+      <span class="role-badge" aria-label="Current role: Volunteer">🟢 Volunteer</span>
+      <a href="/" class="switch-role-link">Switch Role</a>
+    </div>
+  </header>
+
+  <!-- ── Zone assignment bar ────────────────────────────────────────────── -->
+  <div class="zone-bar" role="region" aria-label="Zone assignment">
+    <span class="zone-assignment-label">Zone Assignment:</span>
+    <span class="zone-assignment-val" id="zone-display">Gate C</span>
+    <span class="venue-small" id="venue-display">SoFi Stadium — Los Angeles</span>
+  </div>
+
+  <main class="vol-main">
+
+    <!-- ── Quick status pills ──────────────────────────────────────────── -->
+    <div class="status-pills" role="status" aria-label="Current operational status" aria-live="polite">
+      <span class="status-pill crowd-amber" id="pill-crowd">📊 Crowd: —</span>
+      <span class="status-pill"              id="pill-zone">📍 Zone: —</span>
+      <span class="status-pill"              id="pill-phase">🚶 —</span>
+    </div>
+
+    <!-- ── Fan Assistance Radar ─────────────────────────────────────────── -->
+    <section id="results" class="results-section" role="region" aria-label="Volunteer guidance results">
+
+      <!-- Radar card -->
+      <div class="radar-card" aria-labelledby="radar-title">
+        <div class="card-title" id="radar-title">🛑 Fan Assistance Radar</div>
+        <div class="radar-header">
+          <div class="los-circle-vol" id="radar-los" aria-label="Level of Service">—</div>
+          <div class="radar-zone-info">
+            <div class="zone-name" id="radar-zone">—</div>
+            <div class="occ-text" id="radar-occ">— Occupancy</div>
+          </div>
+        </div>
+        <div class="radar-bar-wrap">
+          <div class="radar-fill" role="progressbar" aria-label="Crowd occupancy"
+               aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div class="radar-fill-inner amber" id="radar-fill"></div>
+          </div>
+        </div>
+        <div class="guidance-script-label">🟢 Volunteer Guidance Script</div>
+        <div class="guidance-script-box" id="guidance-script" aria-live="polite">
+          Submit your zone details below to load your guidance script.
+        </div>
+        <div class="radar-phase-note" id="radar-phase-note"></div>
+      </div>
+
+      <!-- Personal navigation (compact) -->
+      <section class="vol-nav-card" aria-labelledby="vol-nav-title">
+        <div class="card-title" id="vol-nav-title">🧭 My Route</div>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:.5rem">
+          <span class="vol-nav-time" id="nav-time" aria-label="Estimated minutes">—</span>
+          <span style="font-size:.78rem;color:var(--clr-muted)">min to destination</span>
+          <span class="crowd-badge moderate" id="crowd-badge" style="margin-left:auto">—</span>
+        </div>
+        <div class="nav-route" id="nav-route">—</div>
+        <div class="nav-alt-label" style="margin-top:.5rem">Alternative</div>
+        <div class="nav-alt" id="nav-alt">—</div>
+      </section>
+
+      <!-- Volunteer alerts (warning + critical only) -->
+      <section class="card" aria-labelledby="vol-alerts-title">
+        <div class="card-title" id="vol-alerts-title">🚨 Active Alerts</div>
+        <div class="vol-alerts-clear" id="vol-alerts-clear" style="display:none">
+          ✅ Zone Clear — No urgent alerts.
+        </div>
+        <div id="vol-alerts" aria-live="assertive" aria-label="Volunteer alerts"></div>
+      </section>
+
+      <!-- AI Volunteer Briefing -->
+      <section class="vol-insights-card" aria-labelledby="vol-briefing-title">
+        <div class="insights-header" style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
+          <div class="card-title" id="vol-briefing-title" style="margin-bottom:0">✨ Volunteer Briefing</div>
+          <span class="vol-ai-badge" aria-label="Powered by Gemini">✦ Gemini</span>
+        </div>
+        <div id="insights-list" aria-live="polite"></div>
+        <button class="btn-copy" id="copy-guidance-btn" type="button"
+                aria-label="Copy volunteer guidance and briefing to clipboard">
+          📋 Copy Guidance to Clipboard
+        </button>
+        <div class="meta-row" style="margin-top:.75rem">
+          <div class="confidence-bar-wrap">
+            <div class="confidence-label">
+              <span>AI Confidence</span>
+              <span id="confidence-value">—</span>
+            </div>
+            <div class="confidence-bar" role="progressbar" aria-label="AI confidence"
+                 aria-valuemin="0" aria-valuemax="100">
+              <div class="confidence-fill" id="confidence-fill"
+                   style="background:linear-gradient(90deg,#00838f,#26c6da)"></div>
+            </div>
+          </div>
+          <span class="storage-pill" id="storage-pill" style="background:rgba(38,198,218,.1);border-color:rgba(38,198,218,.25);color:var(--clr-role)">💾 —</span>
+        </div>
+        <p class="methodology-text" id="methodology-text"></p>
+      </section>
+
+    </div><!-- /results -->
+
+    <!-- ── Collapsible refresh form ─────────────────────────────────────── -->
+    <section aria-label="Briefing refresh form">
+      <button class="vol-form-toggle" id="vol-form-toggle"
+              aria-expanded="false" aria-controls="vol-form-collapse">
+        <span>⚙️ Refresh Briefing</span>
+        <span class="chevron" aria-hidden="true">▼</span>
+      </button>
+
+      <div id="vol-form-collapse" class="vol-form-collapse" role="region">
+        <form id="vol-form" novalidate>
+
+          <!-- Hidden profile defaults -->
+          <input type="hidden" id="profile-name"     value="Volunteer" />
+          <input type="hidden" id="mobility-aid"     value="none" />
+          <input type="hidden" id="profile-party-size" value="1" />
+          <input type="hidden" id="destination"      value="exit" />
+          <input type="hidden" id="destination-detail" value="" />
+          <input type="hidden" id="direction"        value="arriving" />
+          <input type="hidden" id="distance-km"      value="0.5" />
+          <input type="checkbox" id="requires-elevator"         style="display:none" />
+          <input type="checkbox" id="requires-accessible-route" style="display:none" />
+          <input type="checkbox" id="visual-impairment"         style="display:none" />
+          <input type="checkbox" id="hearing-impairment"        style="display:none" />
+
+          <div class="field-group">
+            <label>Venue
+              <select id="venue-select">
+                <option value="sofi_stadium">SoFi Stadium — Los Angeles</option>
+                <option value="metlife_stadium">MetLife Stadium — New York/NJ</option>
+                <option value="att_stadium">AT&amp;T Stadium — Dallas</option>
+                <option value="nrg_stadium">NRG Stadium — Houston</option>
+                <option value="levis_stadium">Levi's Stadium — San Francisco</option>
+                <option value="estadio_azteca">Estadio Azteca — Mexico City</option>
+                <option value="estadio_akron">Estadio AKRON — Guadalajara</option>
+                <option value="estadio_bbva">Estadio BBVA — Monterrey</option>
+                <option value="bmo_field">BMO Field — Toronto</option>
+                <option value="bc_place">BC Place — Vancouver</option>
+              </select>
+            </label>
+            <label>Zone Assignment
+              <input type="text" id="current-zone" value="Gate C" placeholder="e.g. Gate C, Section 112" />
+            </label>
+            <label>Section
+              <input type="text" id="section" value="Gate C" placeholder="e.g. Gate C" />
+            </label>
+            <label>Match Phase
+              <select id="match-phase">
+                <option value="pre_match">Pre-Match</option>
+                <option value="arrival" selected>Arrival</option>
+                <option value="kickoff">Kick-off</option>
+                <option value="halftime">Half-time</option>
+                <option value="post_match">Post-Match</option>
+              </select>
+            </label>
+            <label>Crowd Density (%)
+              <input type="number" id="crowd-density" value="65" min="0" max="100" step="5" />
+            </label>
+            <label>Language
+              <select id="profile-language">
+                <option value="en">🇬🇧 English</option>
+                <option value="es">🇲🇽 Español</option>
+                <option value="pt">🇧🇷 Português</option>
+                <option value="fr">🇫🇷 Français</option>
+                <option value="ar">🇸🇦 العربية</option>
+                <option value="de">🇩🇪 Deutsch</option>
+                <option value="zh">🇨🇳 中文</option>
+              </select>
+            </label>
+            <label>Transport Mode
+              <select id="transport-mode">
+                <option value="shuttle">🚌 FIFA Shuttle</option>
+                <option value="metro">🚇 Metro</option>
+                <option value="walk">🚶 Walk</option>
+                <option value="rideshare">🚗 Rideshare</option>
+                <option value="car">🅿️ Car</option>
+              </select>
+            </label>
+          </div>
+
+          <button type="submit" class="btn-submit" id="submit-btn">Refresh Briefing ⚽</button>
+          <div class="status-msg" id="status-msg" role="alert" aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="footer-switch">
+      <a href="/" class="switch-role-link">← Switch Role</a>
+    </div>
+    <div class="footer-credits" style="margin-top:.5rem">
+      🟢 StadiumIQ Volunteer — FIFA World Cup 2026
+    </div>
+  </footer>
+
+  <script src="/static/app-core.js"></script>
+  <script src="/static/app-volunteer.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Sync zone and venue display with form
+      const zoneInput = document.getElementById('current-zone');
+      const zoneDisp  = document.getElementById('zone-display');
+      const venueSel  = document.getElementById('venue-select');
+      const venueDisp = document.getElementById('venue-display');
+      const pillZone  = document.getElementById('pill-zone');
+      const pillPhase = document.getElementById('pill-phase');
+      const phaseSel  = document.getElementById('match-phase');
+
+      function syncZone() {
+        const z = (zoneInput?.value || 'Zone').trim();
+        if (zoneDisp) zoneDisp.textContent = z;
+        if (pillZone) pillZone.textContent = '📍 Zone: ' + z;
+      }
+      function syncVenue() {
+        const label = VENUE_LABELS[venueSel?.value] || venueSel?.value || 'Venue';
+        if (venueDisp) venueDisp.textContent = label;
+      }
+      function syncPhase() {
+        const label = PHASE_LABELS[phaseSel?.value] || '🚶 Arrival';
+        if (pillPhase) pillPhase.textContent = label;
+      }
+
+      zoneInput?.addEventListener('input', syncZone);
+      venueSel?.addEventListener('change', syncVenue);
+      phaseSel?.addEventListener('change', syncPhase);
+      syncZone(); syncVenue(); syncPhase();
+
+      // Show results once available
+      const resultsEl = document.getElementById('results');
+      if (resultsEl) resultsEl.classList.add('visible');
+    });
+  </script>
+</body>
+</html>

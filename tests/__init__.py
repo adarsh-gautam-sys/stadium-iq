@@ -1,0 +1,1 @@
+"""StadiumIQ test suite."""

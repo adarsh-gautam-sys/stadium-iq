@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="StadiumIQ Fan Dashboard — Personal AI navigation, seat finder, transport planner, and live crowd alerts for FIFA World Cup 2026." />
+  <meta name="theme-color" content="#050d1a" />
+  <title>StadiumIQ — Fan Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="/static/base.css" />
+  <link rel="stylesheet" href="/static/dashboard-fan.css" />
+</head>
+<body>
+  <a class="skip-link" href="#results">Skip to guidance results</a>
+
+  <!-- ── Sticky header ──────────────────────────────────────────────────── -->
+  <header class="dash-header" role="banner" aria-label="Fan dashboard header">
+    <a href="/" class="logo" aria-label="StadiumIQ home">⚽ StadiumIQ</a>
+    <span class="dash-header-center" aria-current="page">Fan Dashboard</span>
+    <div class="dash-header-right">
+      <span class="live-dot" aria-hidden="true"></span>
+      <span style="font-size:.75rem;color:var(--clr-muted)">Live</span>
+      <span class="role-badge" aria-label="Current role: Fan">🎉 Fan</span>
+      <a href="/" class="switch-role-link" aria-label="Switch to a different role">Switch Role</a>
+    </div>
+  </header>
+
+  <!-- ── Venue context bar ──────────────────────────────────────────────── -->
+  <div class="venue-bar" role="region" aria-label="Venue context">
+    <span class="venue-name" id="venue-display">🏁 SoFi Stadium — Los Angeles</span>
+    <span class="phase-pill" id="phase-display">🚶 Arrival Phase</span>
+    <span class="greeting" id="greeting-display">👤 Hey there!</span>
+  </div>
+
+  <main class="fan-main">
+
+    <!-- ── Collapsible profile form ─────────────────────────────────────── -->
+    <section aria-label="Profile and guidance form">
+      <button class="form-toggle-btn" id="form-toggle-btn"
+              aria-expanded="false" aria-controls="form-collapse">
+        <span>⚙️ Update Your Profile &amp; Get Guidance</span>
+        <span class="chevron" aria-hidden="true">▼</span>
+      </button>
+
+      <div id="form-collapse" class="form-panel-collapse" role="region">
+        <form id="fan-form" novalidate>
+
+          <div class="form-section">
+            <div class="section-label">👤 Personal</div>
+            <div class="field-group">
+              <label>Your Name
+                <input type="text" id="profile-name" placeholder="e.g. Alex" autocomplete="given-name" />
+              </label>
+              <label>Language
+                <select id="profile-language">
+                  <option value="en">🇬🇧 English</option>
+                  <option value="es">🇲🇽 Español</option>
+                  <option value="pt">🇧🇷 Português</option>
+                  <option value="fr">🇫🇷 Français</option>
+                  <option value="ar">🇸🇦 العربية</option>
+                  <option value="de">🇩🇪 Deutsch</option>
+                  <option value="zh">🇨🇳 中文</option>
+                </select>
+              </label>
+              <label>Party Size
+                <input type="number" id="profile-party-size" value="1" min="1" max="50" />
+              </label>
+            </div>
+          </div>
+
+          <div class="divider" role="separator"></div>
+
+          <div class="form-section">
+            <div class="section-label">🏟️ Venue &amp; Match</div>
+            <div class="field-group">
+              <label>Venue
+                <select id="venue-select">
+                  <option value="sofi_stadium">SoFi Stadium — Los Angeles</option>
+                  <option value="metlife_stadium">MetLife Stadium — New York/NJ</option>
+                  <option value="att_stadium">AT&amp;T Stadium — Dallas</option>
+                  <option value="nrg_stadium">NRG Stadium — Houston</option>
+                  <option value="levis_stadium">Levi's Stadium — San Francisco</option>
+                  <option value="arrowhead_stadium">Arrowhead — Kansas City</option>
+                  <option value="lincoln_financial">Lincoln Financial — Philadelphia</option>
+                  <option value="gillette_stadium">Gillette Stadium — Boston</option>
+                  <option value="hard_rock_stadium">Hard Rock Stadium — Miami</option>
+                  <option value="mercedes_benz_stadium">Mercedes-Benz — Atlanta</option>
+                  <option value="lumen_field">Lumen Field — Seattle</option>
+                  <option value="estadio_azteca">Estadio Azteca — Mexico City</option>
+                  <option value="estadio_akron">Estadio AKRON — Guadalajara</option>
+                  <option value="estadio_bbva">Estadio BBVA — Monterrey</option>
+                  <option value="bmo_field">BMO Field — Toronto</option>
+                  <option value="bc_place">BC Place — Vancouver</option>
+                </select>
+              </label>
+              <label>Seat Section
+                <input type="text" id="section" placeholder="e.g. 112A, GA North" />
+              </label>
+              <label>Current Zone / Gate
+                <input type="text" id="current-zone" placeholder="e.g. Gate C, Main Concourse" value="Gate C" />
+              </label>
+              <label>Match Phase
+                <select id="match-phase">
+                  <option value="pre_match">Pre-Match</option>
+                  <option value="arrival" selected>Arrival</option>
+                  <option value="kickoff">Kick-off</option>
+                  <option value="halftime">Half-time</option>
+                  <option value="post_match">Post-Match</option>
+                </select>
+              </label>
+              <label>Crowd Density (%)
+                <input type="number" id="crowd-density" value="65" min="0" max="100" step="5" />
+              </label>
+            </div>
+          </div>
+
+          <div class="divider" role="separator"></div>
+
+          <div class="form-section">
+            <div class="section-label">🧭 Navigation</div>
+            <div class="field-group">
+              <label>Destination
+                <select id="destination">
+                  <option value="seat">My Seat</option>
+                  <option value="concessions">Concessions / Food</option>
+                  <option value="restroom">Restroom</option>
+                  <option value="exit">Exit / Transport</option>
+                  <option value="first_aid">First Aid</option>
+                  <option value="fan_zone">Fan Zone</option>
+                  <option value="merchandise">Merchandise</option>
+                </select>
+              </label>
+              <label for="destination-detail">Additional Detail
+                <input type="text" id="destination-detail" placeholder="e.g. Section 112A Row 4" />
+              </label>
+              <label class="checkbox-row">
+                <input type="checkbox" id="requires-elevator" />
+                Requires elevator / lift access
+              </label>
+              <label class="checkbox-row">
+                <input type="checkbox" id="requires-accessible-route" />
+                Requires accessible / wheelchair route
+              </label>
+            </div>
+          </div>
+
+          <div class="divider" role="separator"></div>
+
+          <div class="form-section">
+            <div class="section-label">♿ Accessibility</div>
+            <div class="field-group">
+              <label>Mobility Aid
+                <select id="mobility-aid">
+                  <option value="none">None</option>
+                  <option value="cane">Cane</option>
+                  <option value="walker">Walker / Rollator</option>
+                  <option value="wheelchair">Wheelchair</option>
+                  <option value="electric_chair">Electric Wheelchair</option>
+                </select>
+              </label>
+              <label class="checkbox-row">
+                <input type="checkbox" id="visual-impairment" />
+                Visual impairment
+              </label>
+              <label class="checkbox-row">
+                <input type="checkbox" id="hearing-impairment" />
+                Hearing impairment
+              </label>
+            </div>
+          </div>
+
+          <div class="divider" role="separator"></div>
+
+          <div class="form-section">
+            <div class="section-label">🚌 Transport</div>
+            <div class="field-group">
+              <label>Primary Transport Mode
+                <select id="transport-mode">
+                  <option value="shuttle">🚌 FIFA Shuttle</option>
+                  <option value="metro">🚇 Metro / Rail</option>
+                  <option value="rideshare">🚗 Rideshare</option>
+                  <option value="walk">🚶 Walk</option>
+                  <option value="car">🅿️ Car / Parking</option>
+                </select>
+              </label>
+              <label>Direction
+                <select id="direction">
+                  <option value="arriving">Arriving at stadium</option>
+                  <option value="departing">Departing stadium</option>
+                </select>
+              </label>
+              <label>Distance from Stadium (km)
+                <input type="number" id="distance-km" value="3.5" min="0.1" max="50" step="0.5" />
+              </label>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit" id="submit-btn">Get My Guidance ⚽</button>
+          <div class="status-msg" id="status-msg" role="alert" aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ── Results ──────────────────────────────────────────────────────── -->
+    <div id="results" class="results-section" role="region" aria-label="Your guidance">
+
+      <!-- Navigation card -->
+      <section class="nav-card section" aria-labelledby="nav-title">
+        <div class="nav-header">
+          <div>
+            <div class="card-title" id="nav-title">🧭 Navigation Guidance</div>
+            <div style="display:flex;align-items:baseline;gap:6px">
+              <span class="nav-time" id="nav-time" aria-label="Estimated minutes">—</span>
+              <span class="nav-time-label">estimated minutes</span>
+            </div>
+          </div>
+          <span class="crowd-badge moderate" id="crowd-badge" aria-label="Crowd level">—</span>
+        </div>
+        <div class="nav-route" id="nav-route" aria-label="Route description">—</div>
+        <div class="nav-alt-label">Alternative Route</div>
+        <div class="nav-alt"  id="nav-alt" aria-label="Alternative route">—</div>
+        <div class="a11y-note" id="a11y-note" role="note">
+          <span class="icon" aria-hidden="true">♿</span>
+          <span id="a11y-text"></span>
+        </div>
+      </section>
+
+      <!-- Crowd status -->
+      <section class="card section" aria-labelledby="crowd-title">
+        <div class="card-title" id="crowd-title">
+          👥 Crowd Status
+          <span class="los-badge" id="los-badge" aria-label="Level of Service">—</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <strong id="crowd-zone">—</strong>
+        </div>
+        <div class="crowd-meter" role="progressbar" id="crowd-meter-el"
+             aria-label="Crowd occupancy" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="crowd-fill amber" id="crowd-fill"></div>
+        </div>
+        <div class="crowd-labels">
+          <span>0%</span>
+          <span id="crowd-pct-label">—</span>
+          <span>100%</span>
+        </div>
+        <p style="margin-top:.6rem;font-size:.82rem;color:var(--clr-muted)" id="crowd-recommendation">—</p>
+      </section>
+
+      <!-- Transport options -->
+      <section class="card section" aria-labelledby="transport-title">
+        <div class="card-title" id="transport-title">🚌 Transport Options</div>
+        <div class="transport-chips-wrap">
+          <div class="transport-chips" id="transport-chips" role="group" aria-label="Transport mode selector"></div>
+        </div>
+        <div class="transport-detail" id="transport-detail" role="region" aria-label="Transport detail"></div>
+      </section>
+
+      <!-- Alerts -->
+      <section class="card section" aria-labelledby="alerts-title">
+        <div class="card-title" id="alerts-title">🚨 Alerts</div>
+        <div class="alert-list" id="fan-alerts" role="list" aria-live="polite"></div>
+      </section>
+
+      <!-- AI insights -->
+      <section class="fan-insights-card section" aria-labelledby="insights-title">
+        <div class="insights-header">
+          <div class="card-title" id="insights-title" style="margin-bottom:0">✨ Your Personal Guidance</div>
+          <span class="ai-badge" aria-label="Powered by Gemini">✦ Gemini</span>
+        </div>
+        <div class="insights-list" id="insights-list" aria-live="polite"></div>
+        <div class="meta-row" style="margin-top:.75rem">
+          <div class="confidence-bar-wrap">
+            <div class="confidence-label">
+              <span>AI Confidence</span>
+              <span id="confidence-value">—</span>
+            </div>
+            <div class="confidence-bar" role="progressbar" aria-label="AI confidence"
+                 aria-valuemin="0" aria-valuemax="100">
+              <div class="confidence-fill" id="confidence-fill"></div>
+            </div>
+          </div>
+          <span class="storage-pill" id="storage-pill">💾 —</span>
+        </div>
+        <p class="methodology-text" id="methodology-text"></p>
+      </section>
+
+    </div><!-- /results -->
+
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="footer-switch">
+      <a href="/" class="switch-role-link">← Switch Role</a>
+    </div>
+    <div class="footer-credits" style="margin-top:.5rem">
+      ⚽ StadiumIQ — FIFA World Cup 2026 &nbsp;·&nbsp; Fan Mode
+    </div>
+  </footer>
+
+  <script src="/static/app-core.js"></script>
+  <script src="/static/app-fan.js"></script>
+  <script>
+    // Populate greeting and venue display from form values
+    document.addEventListener('DOMContentLoaded', () => {
+      const nameEl  = document.getElementById('profile-name');
+      const greetEl = document.getElementById('greeting-display');
+      const venueSel= document.getElementById('venue-select');
+      const venueDisp=document.getElementById('venue-display');
+      const phaseSel= document.getElementById('match-phase');
+      const phaseDisp=document.getElementById('phase-display');
+
+      function updateGreet() {
+        const n = (nameEl?.value || '').trim();
+        if (greetEl) greetEl.textContent = n ? `👤 Hey ${n}!` : '👤 Hey there!';
+      }
+      function updateVenueBar() {
+        const vLabel = VENUE_LABELS[venueSel?.value] || venueSel?.value || 'Venue';
+        if (venueDisp) venueDisp.textContent = '🏁 ' + vLabel;
+        const pLabel = PHASE_LABELS[phaseSel?.value] || '';
+        if (phaseDisp) phaseDisp.textContent = pLabel;
+      }
+
+      nameEl?.addEventListener('input', updateGreet);
+      venueSel?.addEventListener('change', updateVenueBar);
+      phaseSel?.addEventListener('change', updateVenueBar);
+      updateGreet(); updateVenueBar();
+    });
+  </script>
+</body>
+</html>

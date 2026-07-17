@@ -1,0 +1,319 @@
+/* ══════════════════════════════════════════════════════════════════════════════
+   StadiumIQ — dashboard-staff.css
+   Staff command center specific styles. Accent: Amber #ff9800.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Role token overrides ────────────────────────────────────────────────── */
+:root {
+  --clr-role:      #ff9800;
+  --clr-role-dark: #e65100;
+  --clr-role-glow: rgba(255, 152, 0, 0.18);
+  --clr-role-dim:  rgba(255, 152, 0, 0.10);
+}
+
+/* ── Staff command header band ───────────────────────────────────────────── */
+.staff-header-center { color: var(--clr-role); }
+.staff-header-selectors {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.staff-header-selectors select {
+  font-size: 0.8rem;
+  padding: 6px 28px 6px 10px;
+  width: auto;
+  min-width: 180px;
+  background-color: var(--clr-surface-2);
+}
+
+/* ── Desktop layout ──────────────────────────────────────────────────────── */
+.staff-main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem 3rem;
+}
+
+/* ── KPI metrics row ─────────────────────────────────────────────────────── */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.kpi-card {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-top: 3px solid var(--clr-role);
+  border-radius: var(--radius-lg);
+  padding: 1.1rem 1.25rem;
+  box-shadow: var(--shadow-card);
+  position: relative;
+  overflow: hidden;
+}
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; right: 0;
+  width: 120px; height: 120px;
+  background: radial-gradient(circle, var(--clr-role-glow) 0%, transparent 70%);
+  pointer-events: none;
+}
+.kpi-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--clr-role);
+  margin-bottom: 0.5rem;
+}
+.kpi-value {
+  font-size: 2.4rem;
+  font-weight: 900;
+  color: var(--clr-ink);
+  line-height: 1;
+  margin-bottom: 0.35rem;
+  font-variant-numeric: tabular-nums;
+}
+.kpi-sub {
+  font-size: 0.72rem;
+  color: var(--clr-muted);
+  margin-bottom: 0.5rem;
+}
+.kpi-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: var(--radius-xl);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.kpi-badge.green  { background: rgba(0,200,83,0.15);  color: var(--clr-alert-green); border: 1px solid rgba(0,200,83,0.3); }
+.kpi-badge.amber  { background: rgba(255,152,0,0.15); color: var(--clr-alert-amber); border: 1px solid rgba(255,152,0,0.3); }
+.kpi-badge.red    { background: rgba(244,67,54,0.15); color: var(--clr-alert-red);   border: 1px solid rgba(244,67,54,0.3); }
+.kpi-mini-bar { height: 4px; background: var(--clr-surface-2); border-radius: 2px; overflow: hidden; margin-top: 0.4rem; }
+.kpi-mini-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--clr-role-dark), var(--clr-role));
+  border-radius: 2px;
+  width: 0;
+  transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+}
+.kpi-los-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 50%;
+  font-size: 1rem; font-weight: 900;
+  border: 2px solid var(--clr-role); color: var(--clr-role);
+  background: var(--clr-role-dim);
+  margin-left: 8px;
+}
+
+/* ── 2-column layout ─────────────────────────────────────────────────────── */
+.staff-columns {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+/* ── Section header ──────────────────────────────────────────────────────── */
+.staff-section-header {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--clr-role);
+  margin-bottom: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.staff-section-header::before {
+  content: ''; width: 3px; height: 14px;
+  background: var(--clr-role); border-radius: 2px; flex-shrink: 0;
+}
+
+/* ── Operational alerts ──────────────────────────────────────────────────── */
+.staff-alerts-panel {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+.staff-alert-card {
+  padding: 0.9rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  margin-bottom: 0.65rem;
+  position: relative;
+}
+.staff-alert-card:last-child { margin-bottom: 0; }
+.staff-alert-card.info     { background: var(--clr-info-dim);     border-color: var(--clr-info-border); }
+.staff-alert-card.warning  { background: var(--clr-warning-dim);  border-color: var(--clr-warning-border); }
+.staff-alert-card.critical { background: var(--clr-critical-dim); border-color: var(--clr-critical-border); animation: critical-pulse 1.5s infinite; }
+.staff-alert-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+}
+.staff-alert-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.staff-alert-title { font-weight: 700; font-size: 0.9rem; }
+.staff-alert-card.info .staff-alert-title     { color: #90caf9; }
+.staff-alert-card.warning .staff-alert-title  { color: #ffcc80; }
+.staff-alert-card.critical .staff-alert-title { color: #ef9a9a; }
+.staff-alert-zone {
+  display: inline-flex; align-items: center;
+  padding: 1px 8px; border-radius: var(--radius-xl);
+  font-size: 0.65rem; font-weight: 700;
+  border: 1px solid var(--clr-border); color: var(--clr-muted);
+}
+.staff-alert-action {
+  font-size: 0.8rem;
+  color: var(--clr-muted);
+  line-height: 1.55;
+  margin-bottom: 0.5rem;
+}
+.btn-acknowledge {
+  font-family: var(--font);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--clr-border);
+  background: transparent;
+  color: var(--clr-muted);
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.btn-acknowledge:hover { border-color: var(--clr-role); color: var(--clr-role); }
+.btn-acknowledge.acknowledged {
+  border-color: var(--clr-alert-green);
+  color: var(--clr-alert-green);
+  cursor: default;
+}
+.alerts-all-clear {
+  text-align: center;
+  padding: 1.25rem;
+  color: var(--clr-alert-green);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* ── Crowd management thick bar ──────────────────────────────────────────── */
+.crowd-bar-thick {
+  height: 18px;
+  background: var(--clr-surface-2);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  margin: 0.65rem 0;
+}
+.crowd-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-sm);
+  width: 0;
+  transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+}
+.crowd-bar-fill.green { background: linear-gradient(90deg, #00a040, var(--clr-alert-green)); }
+.crowd-bar-fill.amber { background: linear-gradient(90deg, #e65100, var(--clr-alert-amber)); }
+.crowd-bar-fill.red   { background: linear-gradient(90deg, #b71c1c, var(--clr-alert-red)); }
+.los-circle {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; border-radius: 50%;
+  font-size: 1.2rem; font-weight: 900;
+  border: 2px solid var(--clr-role); color: var(--clr-role);
+  background: var(--clr-role-dim);
+}
+
+/* ── Transport table ─────────────────────────────────────────────────────── */
+.transport-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.transport-table th {
+  font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--clr-muted);
+  padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--clr-border);
+  text-align: left;
+}
+.transport-table td {
+  padding: 0.55rem 0.6rem;
+  border-bottom: 1px solid rgba(30,58,95,0.5);
+  vertical-align: middle;
+}
+.transport-table tr:last-child td { border-bottom: none; }
+.transport-table tr.preferred td { background: rgba(255,152,0,0.05); }
+.transport-table tr:hover td { background: rgba(255,255,255,0.02); }
+.t-mode { font-weight: 700; }
+.t-wait { color: var(--clr-muted); }
+.t-journey { font-weight: 700; color: var(--clr-ink); }
+.t-point { color: var(--clr-muted); font-size: 0.72rem; max-width: 200px; }
+.surge-note {
+  margin-top: 0.65rem; padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--clr-role-dim);
+  border: 1px solid var(--clr-role);
+  color: var(--clr-role); font-size: 0.72rem; font-weight: 600;
+}
+
+/* ── Staff form panel ────────────────────────────────────────────────────── */
+.staff-form-panel {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  margin-top: 1.25rem;
+}
+.staff-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+/* ── Staff insights (amber accent) ──────────────────────────────────────── */
+.staff-insights-card {
+  background: linear-gradient(135deg, rgba(255,152,0,0.05) 0%, rgba(255,152,0,0.02) 100%);
+  border: 1px solid rgba(255,152,0,0.2);
+  border-radius: var(--radius-lg);
+  padding: 1.1rem;
+}
+.staff-insight-item {
+  padding: 10px 12px; border-radius: var(--radius-md);
+  background: rgba(255,255,255,0.03);
+  border-left: 3px solid var(--clr-role);
+  font-size: 0.85rem; line-height: 1.6; color: var(--clr-ink);
+  margin-bottom: 0.5rem;
+  animation: fade-in 0.5s ease both;
+}
+.staff-insight-item:nth-child(2) { animation-delay: 0.1s; }
+.staff-insight-item:nth-child(3) { animation-delay: 0.2s; }
+.staff-ai-badge {
+  background: rgba(255,152,0,0.12); border: 1px solid rgba(255,152,0,0.3);
+  border-radius: var(--radius-xl); padding: 3px 10px;
+  font-size: 0.68rem; font-weight: 800;
+  color: var(--clr-role); text-transform: uppercase; letter-spacing: 0.1em;
+}
+
+/* ── Responsive collapse ─────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .staff-columns { grid-template-columns: 1fr; }
+  .kpi-row       { grid-template-columns: repeat(2, 1fr); }
+  .staff-form-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .kpi-row { grid-template-columns: 1fr; }
+  .staff-main { padding: 1rem 0.75rem 3rem; }
+  .staff-form-grid { grid-template-columns: 1fr; }
+}
+
+@keyframes critical-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(244,67,54,0); }
+  50%       { box-shadow: 0 0 0 4px rgba(244,67,54,0.2); }
+}

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="StadiumIQ — AI-powered navigation, crowd management, and real-time intelligence for all 16 FIFA World Cup 2026 host stadiums." />
+  <meta name="theme-color" content="#050d1a" />
+  <title>StadiumIQ — FIFA World Cup 2026 Intelligence Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="/static/base.css" />
+  <style>
+    /* Landing-page only styles */
+    .landing-body { background: var(--clr-bg); }
+
+    /* Role selection section */
+    .role-section {
+      max-width: 1100px; margin: 0 auto;
+      padding: 3rem 1.5rem 4rem;
+    }
+    .role-section-heading {
+      text-align: center; margin-bottom: 2.5rem;
+    }
+    .role-section-heading h2 {
+      font-family: var(--font-display);
+      font-size: clamp(1.2rem, 3vw, 1.8rem);
+      font-weight: 800; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--clr-gold);
+      margin-bottom: 0.5rem;
+    }
+    .role-section-heading p {
+      color: var(--clr-muted); font-size: 0.95rem;
+    }
+
+    /* Role cards grid */
+    .role-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    @media (max-width: 900px) { .role-cards { grid-template-columns: 1fr; max-width: 480px; margin: 0 auto; } }
+    @media (max-width: 600px) { .role-section { padding: 2rem 1rem 3rem; } }
+
+    .role-card {
+      background: var(--clr-surface);
+      border-radius: var(--radius-xl);
+      border: 1.5px solid var(--clr-border);
+      padding: 2rem 1.75rem;
+      display: flex; flex-direction: column; gap: 0.85rem;
+      cursor: pointer; text-decoration: none;
+      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+      position: relative; overflow: hidden;
+    }
+    .role-card::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(circle at 80% 0%, var(--card-glow) 0%, transparent 60%);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .role-card:hover { transform: translateY(-6px); }
+    .role-card:hover::before { opacity: 1; }
+
+    /* Per-role card border + glow colours */
+    .role-card.fan     { --card-color: #00c853; --card-glow: rgba(0,200,83,0.15); }
+    .role-card.staff   { --card-color: #ff9800; --card-glow: rgba(255,152,0,0.15); }
+    .role-card.vol     { --card-color: #26c6da; --card-glow: rgba(38,198,218,0.15); }
+
+    .role-card.fan:hover   { border-color: var(--card-color); box-shadow: 0 8px 40px rgba(0,200,83,0.25); }
+    .role-card.staff:hover { border-color: var(--card-color); box-shadow: 0 8px 40px rgba(255,152,0,0.25); }
+    .role-card.vol:hover   { border-color: var(--card-color); box-shadow: 0 8px 40px rgba(38,198,218,0.25); }
+
+    .role-card-icon {
+      font-size: 2.8rem; line-height: 1;
+      display: block; margin-bottom: 0.25rem;
+    }
+    .role-card-title {
+      font-family: var(--font-display);
+      font-size: 1.5rem; font-weight: 900;
+      color: var(--clr-ink);
+    }
+    .role-card-desc {
+      font-size: 0.85rem; color: var(--clr-muted);
+      line-height: 1.65; flex: 1;
+    }
+    .role-card-desc ul {
+      margin: 0.35rem 0 0 0; padding: 0; list-style: none;
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .role-card-desc ul li::before { content: '· '; color: var(--card-color); }
+
+    .role-card-cta {
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 12px 20px; border-radius: var(--radius-md);
+      font-weight: 800; font-size: 0.9rem; letter-spacing: 0.04em;
+      border: none; cursor: pointer; font-family: var(--font);
+      transition: transform var(--transition), box-shadow var(--transition);
+      color: #000; text-decoration: none; width: 100%; margin-top: 0.25rem;
+    }
+    .role-card.fan   .role-card-cta { background: linear-gradient(135deg, #00a040, #00c853); }
+    .role-card.staff .role-card-cta { background: linear-gradient(135deg, #e65100, #ff9800); color: #fff; }
+    .role-card.vol   .role-card-cta { background: linear-gradient(135deg, #00838f, #26c6da); }
+    .role-card-cta:hover { transform: translateY(-2px); box-shadow: 0 4px 20px var(--card-glow); }
+
+    .badge-strip {
+      margin-top: 0.35rem;
+      display: flex; flex-wrap: wrap; gap: 6px;
+    }
+    .feature-badge {
+      padding: 2px 8px; border-radius: var(--radius-xl);
+      font-size: 0.62rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      border: 1px solid var(--card-color);
+      color: var(--card-color);
+      background: color-mix(in srgb, var(--card-color) 8%, transparent);
+    }
+
+    /* About section */
+    .about-section {
+      background: var(--clr-surface);
+      border-top: 1px solid var(--clr-border);
+      padding: 3rem 1.5rem;
+    }
+    .about-inner {
+      max-width: 1100px; margin: 0 auto;
+    }
+    .about-inner h2 {
+      font-family: var(--font-display);
+      font-size: 1.4rem; font-weight: 800;
+      color: var(--clr-gold); margin-bottom: 1.5rem;
+      letter-spacing: 0.06em;
+    }
+    .about-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+    }
+    .about-card {
+      background: var(--clr-surface-2);
+      border: 1px solid var(--clr-border);
+      border-radius: var(--radius-lg); padding: 1.25rem;
+    }
+    .about-card h3 { font-size: 0.88rem; font-weight: 700; color: var(--clr-role); margin-bottom: 0.4rem; }
+    .about-card p  { font-size: 0.8rem; color: var(--clr-muted); line-height: 1.6; }
+    :root { --clr-role: #00c853; }
+  </style>
+</head>
+<body class="landing-body">
+  <a class="skip-link" href="#role-select">Skip to role selection</a>
+
+  <!-- Hero header -->
+  <header class="hero-header" role="banner">
+    <div class="hero-band" aria-label="Official platform announcement">
+      ⚽ FIFA World Cup 2026 — Official Stadium Intelligence Platform
+    </div>
+
+    <div class="hero-inner">
+      <div class="hero-badge">
+        <span class="dot" aria-hidden="true"></span>
+        🟡 Live Operations &nbsp;·&nbsp; 16 Venues &nbsp;·&nbsp; 7 Languages
+      </div>
+
+      <h1 class="hero-title">
+        <span class="accent">StadiumIQ</span><br />
+        <span class="sub">World Cup 2026 Intelligence</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        AI-powered navigation, crowd management, and real-time intelligence for fans,
+        staff, and volunteers at all 16 FIFA World Cup 2026 host stadiums.
+      </p>
+
+      <nav class="hero-stats" aria-label="Platform statistics">
+        <div class="stat-item">
+          <span class="stat-value">5M+</span>
+          <span class="stat-label">Expected Fans</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">16</span>
+          <span class="stat-label">Host Venues</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">104</span>
+          <span class="stat-label">Matches</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">7</span>
+          <span class="stat-label">Languages</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value">87K</span>
+          <span class="stat-label">Azteca Capacity</span>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Role selection -->
+  <main id="role-select">
+    <section class="role-section" aria-labelledby="role-heading">
+      <div class="role-section-heading">
+        <h2 id="role-heading">Select Your Role to Continue</h2>
+        <p>Each dashboard is tailored with the tools and intelligence specific to your role.</p>
+      </div>
+
+      <div class="role-cards" role="list">
+
+        <!-- Fan card -->
+        <article class="role-card fan" role="listitem">
+          <span class="role-card-icon" aria-hidden="true">🎉</span>
+          <h3 class="role-card-title">I'm a Fan</h3>
+          <div class="role-card-desc">
+            <ul>
+              <li>Personal navigation &amp; seat finder</li>
+              <li>Transport planner &amp; wait times</li>
+              <li>Live crowd &amp; safety alerts</li>
+              <li>AI-powered personal guidance</li>
+              <li>7-language support</li>
+              <li>Accessibility routing</li>
+            </ul>
+          </div>
+          <div class="badge-strip">
+            <span class="feature-badge">Mobile</span>
+            <span class="feature-badge">AI</span>
+            <span class="feature-badge">Live</span>
+          </div>
+          <a href="/fan" id="fan-dashboard-btn" class="role-card-cta"
+             onclick="localStorage.setItem('stadiumiq_role','fan')"
+             aria-label="Enter Fan Dashboard">
+            Enter Fan Dashboard →
+          </a>
+        </article>
+
+        <!-- Staff card -->
+        <article class="role-card staff" role="listitem">
+          <span class="role-card-icon" aria-hidden="true">👔</span>
+          <h3 class="role-card-title">I'm Stadium Staff</h3>
+          <div class="role-card-desc">
+            <ul>
+              <li>Operational command center</li>
+              <li>Live crowd management &amp; KPIs</li>
+              <li>Incident &amp; alert management</li>
+              <li>Real-time zone status</li>
+              <li>Transport operations table</li>
+              <li>AI operational briefings</li>
+            </ul>
+          </div>
+          <div class="badge-strip">
+            <span class="feature-badge">Desktop</span>
+            <span class="feature-badge">KPIs</span>
+            <span class="feature-badge">Alerts</span>
+          </div>
+          <a href="/staff" id="staff-dashboard-btn" class="role-card-cta"
+             onclick="localStorage.setItem('stadiumiq_role','staff')"
+             aria-label="Enter Staff Command Center">
+            Enter Staff Dashboard →
+          </a>
+        </article>
+
+        <!-- Volunteer card -->
+        <article class="role-card vol" role="listitem">
+          <span class="role-card-icon" aria-hidden="true">🟢</span>
+          <h3 class="role-card-title">I'm a Volunteer</h3>
+          <div class="role-card-desc">
+            <ul>
+              <li>Zone briefings &amp; guidance scripts</li>
+              <li>Fan assistance routing</li>
+              <li>Live crowd advisories</li>
+              <li>Personal navigation</li>
+              <li>Warning &amp; critical alerts only</li>
+              <li>Copy-to-clipboard briefing</li>
+            </ul>
+          </div>
+          <div class="badge-strip">
+            <span class="feature-badge">Mobile</span>
+            <span class="feature-badge">Scripts</span>
+            <span class="feature-badge">Radar</span>
+          </div>
+          <a href="/volunteer" id="volunteer-dashboard-btn" class="role-card-cta"
+             onclick="localStorage.setItem('stadiumiq_role','volunteer')"
+             aria-label="Enter Volunteer Dashboard">
+            Enter Volunteer Dashboard →
+          </a>
+        </article>
+      </div>
+    </section>
+
+    <!-- About section -->
+    <section class="about-section" aria-labelledby="about-heading">
+      <div class="about-inner">
+        <h2 id="about-heading">⚽ Powered by AI &amp; Real-Time Data</h2>
+        <div class="about-grid">
+          <div class="about-card">
+            <h3>🤖 Gemini 2.0 Flash</h3>
+            <p>Contextual AI insights tailored to your role, venue, crowd density, and match phase. Real-time guidance in 7 languages.</p>
+          </div>
+          <div class="about-card">
+            <h3>📊 Crowd Intelligence</h3>
+            <p>Fruin Level of Service analysis with real-time occupancy tracking across all 16 venues and crowd density phase multipliers.</p>
+          </div>
+          <div class="about-card">
+            <h3>🚌 Transport Planning</h3>
+            <p>5-mode transport analysis — shuttle, metro, rideshare, walk, car — with live wait times and departure information.</p>
+          </div>
+          <div class="about-card">
+            <h3>♿ Accessibility</h3>
+            <p>Dedicated accessible routing, elevator guidance, mobility aid support, and visual/hearing impairment accommodations.</p>
+          </div>
+          <div class="about-card">
+            <h3>☁️ Google Cloud</h3>
+            <p>Hosted on Cloud Run with Firestore persistence, serving role-specific intelligence with sub-second response times.</p>
+          </div>
+          <div class="about-card">
+            <h3>🔒 Privacy-First</h3>
+            <p>No personal data retained beyond the session. All preferences are stored locally on your device.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="footer-inner">
+      <div class="footer-credits">
+        StadiumIQ — FIFA World Cup 2026 &nbsp;·&nbsp;
+        FastAPI &nbsp;·&nbsp; Gemini 2.0 Flash &nbsp;·&nbsp;
+        Google Cloud Run &nbsp;·&nbsp; Firestore
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Auto-redirect if role was remembered
+    (function () {
+      try {
+        const role = localStorage.getItem('stadiumiq_role');
+        if (role === 'fan')       window.location.href = '/fan';
+        else if (role === 'staff') window.location.href = '/staff';
+        else if (role === 'volunteer') window.location.href = '/volunteer';
+      } catch (_) {}
+    })();
+  </script>
+</body>
+</html>

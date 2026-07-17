@@ -1,0 +1,32 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.env
+*.pyc
+*.pyo
+
+# ── Test artifacts ────────────────────────────────────────────────────────────
+.pytest_tmp_data/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# ── Editor / OS ───────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.log
+.DS_Store
+Thumbs.db
+
+# ── Competition strategy files — NEVER commit ─────────────────────────────────
+antigravity_hackathon_playbook.md
+requirements_guide.md
+requirements.md
+mcp.json
+docs/scoring-checklist.md
+docs/security-check.md
+docs/tool-usage.md
+docs/linkedin-post-draft.md
+docs/prompt-engineering.md

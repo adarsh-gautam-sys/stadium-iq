@@ -1,0 +1,165 @@
+/* ══════════════════════════════════════════════════════════════════════════════
+   StadiumIQ — dashboard-fan.css
+   Fan dashboard specific styles. Accent: FIFA green #00c853.
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Role token overrides ────────────────────────────────────────────────── */
+:root {
+  --clr-role:      #00c853;
+  --clr-role-dark: #00a040;
+  --clr-role-glow: rgba(0, 200, 83, 0.18);
+  --clr-role-dim:  rgba(0, 200, 83, 0.10);
+}
+
+/* ── Mobile layout ───────────────────────────────────────────────────────── */
+.fan-main {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 1rem 1rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ── Collapsible form panel ──────────────────────────────────────────────── */
+.form-toggle-btn {
+  width: 100%;
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  color: var(--clr-ink);
+  font-family: var(--font);
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: border-color var(--transition), background var(--transition);
+}
+.form-toggle-btn:hover {
+  border-color: var(--clr-role);
+  background: var(--clr-surface-2);
+}
+.form-toggle-btn .chevron {
+  font-size: 0.7rem;
+  transition: transform var(--transition);
+  color: var(--clr-muted);
+}
+.form-toggle-btn.open .chevron { transform: rotate(180deg); }
+
+.form-panel-collapse {
+  display: none;
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  padding: 1rem;
+  margin-top: -1px;
+}
+.form-panel-collapse.open { display: block; }
+
+/* ── Transport chips ─────────────────────────────────────────────────────── */
+.transport-chips-wrap {
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+}
+.transport-chips {
+  display: flex;
+  gap: 0.5rem;
+  padding: 4px 2px;
+  min-width: max-content;
+}
+.transport-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--clr-border);
+  background: var(--clr-surface-2);
+  cursor: pointer;
+  transition: border-color var(--transition), background var(--transition), transform var(--transition);
+  white-space: nowrap;
+  font-family: var(--font);
+  color: var(--clr-ink);
+  min-width: 80px;
+}
+.transport-chip:hover {
+  border-color: var(--clr-role);
+  transform: translateY(-2px);
+}
+.transport-chip.active {
+  border-color: var(--clr-role);
+  background: rgba(0,200,83,0.07);
+  box-shadow: 0 0 0 1px var(--clr-role);
+}
+.chip-icon { font-size: 1.3rem; }
+.chip-mode {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: capitalize;
+  color: var(--clr-ink);
+}
+.chip-time {
+  font-size: 0.68rem;
+  color: var(--clr-muted);
+}
+
+/* ── Transport detail box ────────────────────────────────────────────────── */
+.transport-detail {
+  display: none;
+  margin-top: 0.75rem;
+  padding: 0.85rem;
+  background: var(--clr-surface-2);
+  border: 1px solid var(--clr-role);
+  border-radius: var(--radius-md);
+  animation: fade-in 0.3s ease;
+}
+.transport-detail.visible { display: block; }
+.transport-detail .td-mode {
+  font-weight: 700;
+  font-size: 0.88rem;
+  margin-bottom: 0.35rem;
+  color: var(--clr-role);
+}
+.transport-detail .td-stats {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.35rem;
+  font-size: 0.82rem;
+}
+.transport-detail .td-stat-label { color: var(--clr-muted); font-size: 0.72rem; }
+.transport-detail .td-stat-val   { font-weight: 700; color: var(--clr-ink); }
+.transport-detail .td-point { font-size: 0.78rem; color: var(--clr-muted); margin-bottom: 0.25rem; }
+.transport-detail .td-note  { font-size: 0.75rem; color: var(--clr-muted); font-style: italic; }
+
+/* ── Fan alerts — info-only compact style ────────────────────────────────── */
+.fan-alert-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  align-items: flex-start;
+  border: 1px solid transparent;
+  font-size: 0.82rem;
+}
+.fan-alert-item.info     { background: var(--clr-info-dim);     border-color: var(--clr-info-border);     color: #90caf9; }
+.fan-alert-item.warning  { background: var(--clr-warning-dim);  border-color: var(--clr-warning-border);  color: #ffcc80; }
+.fan-alert-item.critical { background: var(--clr-critical-dim); border-color: var(--clr-critical-border); color: #ef9a9a; }
+
+/* ── Insights card — fan color override ──────────────────────────────────── */
+.fan-insights-card {
+  background: linear-gradient(135deg, rgba(0,200,83,0.05) 0%, rgba(0,200,83,0.02) 100%);
+  border: 1px solid rgba(0,200,83,0.2);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+}
+
+/* ── Mobile responsive ───────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .fan-main { padding: 0.75rem 0.75rem 3rem; }
+}

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="StadiumIQ Staff Command Center — Operational crowd management, KPI monitoring, alert management, and AI briefings for FIFA World Cup 2026 stadium staff." />
+  <meta name="theme-color" content="#050d1a" />
+  <title>StadiumIQ — Staff Command Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="/static/base.css" />
+  <link rel="stylesheet" href="/static/dashboard-staff.css" />
+</head>
+<body>
+  <a class="skip-link" href="#results">Skip to results</a>
+
+  <!-- ── Command header ──────────────────────────────────────────────────── -->
+  <header class="dash-header" role="banner" aria-label="Staff command center header">
+    <div style="display:flex;align-items:center;gap:12px">
+      <a href="/" class="logo" aria-label="StadiumIQ home">⚽ StadiumIQ</a>
+      <div style="width:1px;height:22px;background:var(--clr-border)"></div>
+      <span class="dash-header-center staff-header-center" aria-current="page">Staff Command Center</span>
+    </div>
+    <div class="staff-header-selectors">
+      <select id="header-venue" aria-label="Select venue">
+        <option value="sofi_stadium">SoFi Stadium — Los Angeles</option>
+        <option value="metlife_stadium">MetLife Stadium — New York/NJ</option>
+        <option value="att_stadium">AT&amp;T Stadium — Dallas</option>
+        <option value="nrg_stadium">NRG Stadium — Houston</option>
+        <option value="levis_stadium">Levi's Stadium — San Francisco</option>
+        <option value="arrowhead_stadium">Arrowhead — Kansas City</option>
+        <option value="lincoln_financial">Lincoln Financial — Philadelphia</option>
+        <option value="gillette_stadium">Gillette Stadium — Boston</option>
+        <option value="hard_rock_stadium">Hard Rock Stadium — Miami</option>
+        <option value="mercedes_benz_stadium">Mercedes-Benz — Atlanta</option>
+        <option value="lumen_field">Lumen Field — Seattle</option>
+        <option value="estadio_azteca">Estadio Azteca — Mexico City</option>
+        <option value="estadio_akron">Estadio AKRON — Guadalajara</option>
+        <option value="estadio_bbva">Estadio BBVA — Monterrey</option>
+        <option value="bmo_field">BMO Field — Toronto</option>
+        <option value="bc_place">BC Place — Vancouver</option>
+      </select>
+      <select id="header-phase" aria-label="Select match phase">
+        <option value="pre_match">Pre-Match</option>
+        <option value="arrival" selected>Arrival Phase</option>
+        <option value="kickoff">Kick-off</option>
+        <option value="halftime">Half-time</option>
+        <option value="post_match">Post-Match</option>
+      </select>
+    </div>
+    <div class="dash-header-right">
+      <span class="live-dot" aria-hidden="true"></span>
+      <span style="font-size:.75rem;color:var(--clr-muted)">Live</span>
+      <span class="role-badge">👔 Staff</span>
+      <a href="/" class="switch-role-link">Switch Role</a>
+    </div>
+  </header>
+
+  <main class="staff-main">
+
+    <!-- ── KPI metrics row ─────────────────────────────────────────────── -->
+    <section aria-label="Key performance indicators">
+      <div class="kpi-row" role="list">
+
+        <!-- KPI 1: Crowd Density -->
+        <div class="kpi-card" id="kpi-crowd" role="listitem" aria-label="Crowd density KPI">
+          <div class="kpi-label">🏟️ Crowd Density</div>
+          <div style="display:flex;align-items:baseline;gap:8px">
+            <div class="kpi-value" id="kpi-crowd-val">—</div>
+            <span class="kpi-los-badge" id="los-badge" aria-label="Level of Service">—</span>
+          </div>
+          <div class="kpi-sub" id="kpi-crowd-sub">Zone: —</div>
+          <div class="kpi-mini-bar" role="progressbar" aria-label="Crowd fill">
+            <div class="kpi-mini-fill" id="kpi-crowd-fill"></div>
+          </div>
+        </div>
+
+        <!-- KPI 2: Active Alerts -->
+        <div class="kpi-card" id="kpi-alerts" role="listitem" aria-label="Active alerts KPI">
+          <div class="kpi-label">🚨 Active Alerts</div>
+          <div class="kpi-value" id="kpi-alerts-val">—</div>
+          <div class="kpi-sub" id="kpi-alerts-sub">— critical · — warning · — info</div>
+          <span class="kpi-badge green" id="kpi-alerts-badge">—</span>
+        </div>
+
+        <!-- KPI 3: Transport Status -->
+        <div class="kpi-card" id="kpi-transport" role="listitem" aria-label="Transport status KPI">
+          <div class="kpi-label">🚌 Transport Status</div>
+          <div class="kpi-value" id="kpi-transport-val">—</div>
+          <div class="kpi-sub" id="kpi-transport-sub">— wait</div>
+          <span class="kpi-badge green" id="kpi-transport-badge">—</span>
+        </div>
+
+        <!-- KPI 4: AI Confidence -->
+        <div class="kpi-card" id="kpi-ai" role="listitem" aria-label="AI confidence KPI">
+          <div class="kpi-label">✨ AI Confidence</div>
+          <div class="kpi-value">
+            <span id="kpi-ai-val">—</span>
+            <span style="font-size:1rem;font-weight:400;color:var(--clr-muted)">&nbsp;conf.</span>
+          </div>
+          <div class="kpi-sub" style="font-size:.68rem">Gemini 2.0 Flash</div>
+          <div class="kpi-mini-bar" role="progressbar" aria-label="AI confidence bar">
+            <div class="kpi-mini-fill" id="kpi-ai-fill"
+                 style="background:linear-gradient(90deg,#00a040,#00c853)"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── Results (2-column) ──────────────────────────────────────────── -->
+    <div id="results" class="results-section">
+      <div class="staff-columns">
+
+        <!-- LEFT COLUMN -->
+        <div class="staff-left">
+
+          <!-- Operational Alerts -->
+          <div class="staff-alerts-panel" role="region" aria-labelledby="alerts-panel-title">
+            <div class="staff-section-header" id="alerts-panel-title">🚨 Live Operational Alerts</div>
+            <div id="staff-alerts-panel" aria-live="assertive" aria-label="Alert list">
+              <div class="alerts-all-clear">✅ Generate a briefing to load alerts.</div>
+            </div>
+          </div>
+
+          <!-- Crowd Management -->
+          <div class="card" role="region" aria-labelledby="crowd-panel-title">
+            <div class="staff-section-header" id="crowd-panel-title">👥 Crowd Management</div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:.75rem">
+              <strong id="crowd-zone" style="font-size:1.1rem">—</strong>
+              <span class="los-circle" id="crowd-los-circle" aria-label="Level of Service">—</span>
+            </div>
+            <div class="crowd-bar-thick" role="progressbar"
+                 aria-label="Crowd occupancy" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+              <div class="crowd-bar-fill amber" id="crowd-fill"></div>
+            </div>
+            <div class="crowd-labels">
+              <span>0%</span>
+              <span id="crowd-pct-label" style="font-weight:700">—</span>
+              <span>100%</span>
+            </div>
+            <p style="margin-top:.6rem;font-size:.82rem;color:var(--clr-muted)" id="crowd-recommendation">—</p>
+            <p style="margin-top:.4rem;font-size:.65rem;color:var(--clr-muted);font-style:italic" id="crowd-phase-note">
+              Match phase impact will display after briefing generation.
+            </p>
+          </div>
+
+        </div><!-- /staff-left -->
+
+        <!-- RIGHT COLUMN -->
+        <div class="staff-right">
+
+          <!-- Navigation Intelligence -->
+          <div class="card section" role="region" aria-labelledby="nav-intel-title">
+            <div class="staff-section-header" id="nav-intel-title">🧭 Zone Navigation Intel</div>
+            <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:.6rem">
+              <span class="nav-time" id="nav-time" style="font-size:1.5rem" aria-label="Estimated minutes">—</span>
+              <span style="font-size:.78rem;color:var(--clr-muted)">min traversal</span>
+            </div>
+            <div class="nav-route" id="nav-route">—</div>
+            <div class="nav-alt-label" style="margin-top:.6rem">Alternative</div>
+            <div class="nav-alt"  id="nav-alt">—</div>
+          </div>
+
+          <!-- Transport Operations -->
+          <div class="card section" role="region" aria-labelledby="transport-ops-title">
+            <div class="staff-section-header" id="transport-ops-title">🚌 Transport Operations</div>
+            <table class="transport-table" aria-label="Transport options">
+              <thead>
+                <tr>
+                  <th scope="col">Mode</th>
+                  <th scope="col">Wait</th>
+                  <th scope="col">Journey</th>
+                  <th scope="col">Departure</th>
+                </tr>
+              </thead>
+              <tbody id="transport-tbody">
+                <tr><td colspan="4" style="color:var(--clr-muted);font-size:.8rem;text-align:center;padding:1rem">
+                  Generate a briefing to load transport data.
+                </td></tr>
+              </tbody>
+            </table>
+            <div class="surge-note" id="surge-note" style="display:none">
+              ⚠️ Post-Match surge expected — pre-position shuttle staff at Gate B.
+            </div>
+          </div>
+
+          <!-- AI Operational Briefing -->
+          <div class="staff-insights-card section" role="region" aria-labelledby="briefing-title">
+            <div class="insights-header" style="display:flex;align-items:center;gap:10px;margin-bottom:1rem">
+              <div class="staff-section-header" id="briefing-title" style="margin-bottom:0">✨ AI Operational Briefing</div>
+              <span class="staff-ai-badge" aria-label="Powered by Gemini">✦ Gemini</span>
+            </div>
+            <div id="insights-list" aria-live="polite"></div>
+            <div class="meta-row" style="margin-top:.75rem">
+              <div class="confidence-bar-wrap">
+                <div class="confidence-label">
+                  <span>Confidence</span>
+                  <span id="confidence-value">—</span>
+                </div>
+                <div class="confidence-bar" role="progressbar" aria-label="AI confidence"
+                     aria-valuemin="0" aria-valuemax="100">
+                  <div class="confidence-fill" id="confidence-fill"
+                       style="background:linear-gradient(90deg,var(--clr-role-dark),var(--clr-role))"></div>
+                </div>
+              </div>
+              <span class="storage-pill" id="storage-pill">💾 —</span>
+            </div>
+            <p class="methodology-text" id="methodology-text"></p>
+          </div>
+
+        </div><!-- /staff-right -->
+
+      </div><!-- /staff-columns -->
+    </div><!-- /results -->
+
+    <!-- ── Generate briefing form ──────────────────────────────────────── -->
+    <section class="staff-form-panel" aria-labelledby="form-title">
+      <div class="staff-section-header" id="form-title">⚙️ Generate Operational Briefing</div>
+      <form id="staff-form" novalidate>
+
+        <!-- Hidden profile fields -->
+        <input type="hidden" id="profile-name"     value="Officer" />
+        <input type="hidden" id="profile-language" value="en" />
+        <input type="hidden" id="mobility-aid"     value="none" />
+        <input type="hidden" id="profile-party-size" value="1" />
+        <input type="hidden" id="destination"      value="exit" />
+        <input type="hidden" id="destination-detail" value="" />
+        <input type="hidden" id="direction"        value="arriving" />
+        <input type="hidden" id="distance-km"      value="1.0" />
+
+        <div class="staff-form-grid">
+          <!-- Venue (synced with header) -->
+          <label>Venue
+            <select id="venue-select">
+              <option value="sofi_stadium">SoFi Stadium — Los Angeles</option>
+              <option value="metlife_stadium">MetLife Stadium — New York/NJ</option>
+              <option value="att_stadium">AT&amp;T Stadium — Dallas</option>
+              <option value="nrg_stadium">NRG Stadium — Houston</option>
+              <option value="levis_stadium">Levi's Stadium — San Francisco</option>
+              <option value="estadio_azteca">Estadio Azteca — Mexico City</option>
+              <option value="estadio_akron">Estadio AKRON — Guadalajara</option>
+              <option value="estadio_bbva">Estadio BBVA — Monterrey</option>
+              <option value="bmo_field">BMO Field — Toronto</option>
+              <option value="bc_place">BC Place — Vancouver</option>
+            </select>
+          </label>
+
+          <!-- Zone -->
+          <label>Zone / Gate
+            <input type="text" id="current-zone" placeholder="e.g. Gate C" value="Gate C" />
+          </label>
+
+          <!-- Phase (synced with header) -->
+          <label>Match Phase
+            <select id="match-phase">
+              <option value="pre_match">Pre-Match</option>
+              <option value="arrival" selected>Arrival</option>
+              <option value="kickoff">Kick-off</option>
+              <option value="halftime">Half-time</option>
+              <option value="post_match">Post-Match</option>
+            </select>
+          </label>
+
+          <!-- Crowd Density -->
+          <label>Crowd Density (%)
+            <input type="number" id="crowd-density" value="65" min="0" max="100" step="5" />
+          </label>
+
+          <!-- Section -->
+          <label>Section
+            <input type="text" id="section" placeholder="e.g. Gate C Concourse" value="Gate C" />
+          </label>
+
+          <!-- Transport Mode -->
+          <label>Primary Transport
+            <select id="transport-mode">
+              <option value="shuttle">🚌 FIFA Shuttle</option>
+              <option value="metro">🚇 Metro</option>
+              <option value="rideshare">🚗 Rideshare</option>
+              <option value="walk">🚶 Walk</option>
+              <option value="car">🅿️ Car</option>
+            </select>
+          </label>
+        </div>
+
+        <!-- Accessibility (hidden defaults for API compat) -->
+        <input type="hidden" id="requires-elevator"         value="false" />
+        <input type="hidden" id="requires-accessible-route" value="false" />
+        <input type="checkbox" id="visual-impairment"   style="display:none" />
+        <input type="checkbox" id="hearing-impairment"  style="display:none" />
+
+        <button type="submit" class="btn-submit" id="submit-btn">Generate Briefing ⚽</button>
+        <div class="status-msg" id="status-msg" role="alert" aria-live="polite"></div>
+      </form>
+    </section>
+
+  </main>
+
+  <footer class="site-footer" role="contentinfo">
+    <div class="footer-switch">
+      <a href="/" class="switch-role-link">← Switch Role</a>
+    </div>
+    <div class="footer-credits" style="margin-top:.5rem">
+      ⚽ StadiumIQ — FIFA World Cup 2026 &nbsp;·&nbsp; Staff Operations Mode
+    </div>
+  </footer>
+
+  <script src="/static/app-core.js"></script>
+  <script src="/static/app-staff.js"></script>
+  <script>
+    // Show results immediately (staff dashboard is always "ready")
+    document.addEventListener('DOMContentLoaded', () => {
+      // Wire KPI cards to their specific sub-elements
+      const kpiCrowd    = document.getElementById('kpi-crowd');
+      const kpiAlerts   = document.getElementById('kpi-alerts');
+      const kpiTransport= document.getElementById('kpi-transport');
+      const kpiAi       = document.getElementById('kpi-ai');
+      if (kpiCrowd) {
+        kpiCrowd._valEl  = document.getElementById('kpi-crowd-val') || kpiCrowd.querySelector('.kpi-value');
+        kpiCrowd._subEl  = document.getElementById('kpi-crowd-sub') || kpiCrowd.querySelector('.kpi-sub');
+        kpiCrowd._fillEl = document.getElementById('kpi-crowd-fill');
+      }
+      if (kpiAlerts) {
+        kpiAlerts._valEl  = document.getElementById('kpi-alerts-val')  || kpiAlerts.querySelector('.kpi-value');
+        kpiAlerts._subEl  = document.getElementById('kpi-alerts-sub')  || kpiAlerts.querySelector('.kpi-sub');
+        kpiAlerts._badgeEl= document.getElementById('kpi-alerts-badge')|| kpiAlerts.querySelector('.kpi-badge');
+      }
+      if (kpiTransport) {
+        kpiTransport._valEl  = document.getElementById('kpi-transport-val')   || kpiTransport.querySelector('.kpi-value');
+        kpiTransport._subEl  = document.getElementById('kpi-transport-sub')   || kpiTransport.querySelector('.kpi-sub');
+        kpiTransport._badgeEl= document.getElementById('kpi-transport-badge') || kpiTransport.querySelector('.kpi-badge');
+      }
+      if (kpiAi) {
+        kpiAi._valEl  = document.getElementById('kpi-ai-val') || kpiAi.querySelector('.kpi-value span');
+        kpiAi._fillEl = document.getElementById('kpi-ai-fill');
+      }
+
+      // crowd-los-circle syncs with los-badge
+      const losBadge    = document.getElementById('los-badge');
+      const losCircleEl = document.getElementById('crowd-los-circle');
+      if (losBadge && losCircleEl) {
+        const obs = new MutationObserver(() => { losCircleEl.textContent = losBadge.textContent; });
+        obs.observe(losBadge, { childList: true, characterData: true, subtree: true });
+      }
+    });
+  </script>
+</body>
+</html>
