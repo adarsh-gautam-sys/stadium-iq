@@ -204,7 +204,7 @@
       <div class="role-cards" role="list">
 
         <!-- Fan card -->
-        <article class="role-card fan" role="listitem">
+        <article class="role-card fan" role="listitem" onclick="localStorage.setItem('stadiumiq_role','fan'); window.location.href='/fan';">
           <span class="role-card-icon" aria-hidden="true">🎉</span>
           <h3 class="role-card-title">I'm a Fan</h3>
           <div class="role-card-desc">
@@ -223,14 +223,14 @@
             <span class="feature-badge">Live</span>
           </div>
           <a href="/fan" id="fan-dashboard-btn" class="role-card-cta"
-             onclick="localStorage.setItem('stadiumiq_role','fan')"
+             onclick="event.stopPropagation(); localStorage.setItem('stadiumiq_role','fan')"
              aria-label="Enter Fan Dashboard">
             Enter Fan Dashboard →
           </a>
         </article>
 
         <!-- Staff card -->
-        <article class="role-card staff" role="listitem">
+        <article class="role-card staff" role="listitem" onclick="localStorage.setItem('stadiumiq_role','staff'); window.location.href='/staff';">
           <span class="role-card-icon" aria-hidden="true">👔</span>
           <h3 class="role-card-title">I'm Stadium Staff</h3>
           <div class="role-card-desc">
@@ -249,14 +249,14 @@
             <span class="feature-badge">Alerts</span>
           </div>
           <a href="/staff" id="staff-dashboard-btn" class="role-card-cta"
-             onclick="localStorage.setItem('stadiumiq_role','staff')"
+             onclick="event.stopPropagation(); localStorage.setItem('stadiumiq_role','staff')"
              aria-label="Enter Staff Command Center">
             Enter Staff Dashboard →
           </a>
         </article>
 
         <!-- Volunteer card -->
-        <article class="role-card vol" role="listitem">
+        <article class="role-card vol" role="listitem" onclick="localStorage.setItem('stadiumiq_role','volunteer'); window.location.href='/volunteer';">
           <span class="role-card-icon" aria-hidden="true">🟢</span>
           <h3 class="role-card-title">I'm a Volunteer</h3>
           <div class="role-card-desc">
@@ -275,7 +275,7 @@
             <span class="feature-badge">Radar</span>
           </div>
           <a href="/volunteer" id="volunteer-dashboard-btn" class="role-card-cta"
-             onclick="localStorage.setItem('stadiumiq_role','volunteer')"
+             onclick="event.stopPropagation(); localStorage.setItem('stadiumiq_role','volunteer')"
              aria-label="Enter Volunteer Dashboard">
             Enter Volunteer Dashboard →
           </a>
@@ -330,7 +330,13 @@
   <script>
     // Auto-redirect if role was remembered
     (function () {
+
       try {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('switch')) {
+          localStorage.removeItem('stadiumiq_role');
+          return;
+        }
         const role = localStorage.getItem('stadiumiq_role');
         if (role === 'fan')       window.location.href = '/fan';
         else if (role === 'staff') window.location.href = '/staff';
