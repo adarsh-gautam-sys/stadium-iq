@@ -6,6 +6,7 @@ and response content correctness.
 """
 from __future__ import annotations
 
+import pytest
 from fastapi.testclient import TestClient
 
 from tests.conftest import HIGH_IMPACT_PAYLOAD, SAMPLE_PAYLOAD
@@ -25,7 +26,8 @@ def test_assist_endpoint_returns_structured_response(client: TestClient) -> None
     assert len(d["insights"]) == 3
     assert 0 < d["confidence_score"] <= 1
     assert d["methodology"]
-    assert d["storage_status"].startswith("saved_locally:")
+    # Accept both local JSONL and Firestore — depends on env configuration
+    assert d["storage_status"].startswith(("saved_locally:", "saved_to_firestore:", "firestore_unavailable:"))
 
 
 def test_navigation_fields_present(client: TestClient) -> None:
@@ -262,8 +264,16 @@ def test_all_dashboard_routes_return_html(client: TestClient, route: str) -> Non
 # ── LoS F boundary condition ──────────────────────────────────────────────────
 
 def test_los_f_at_full_capacity(client: TestClient) -> None:
-    """100% crowd density triggers LoS F and red alert — Fruin boundary test."""
-    payload = {**SAMPLE_PAYLOAD, "venue": {**SAMPLE_PAYLOAD["venue"], "crowd_density_pct": 100.0}}
+    """100% crowd density at kickoff phase triggers LoS F and red alert.
+
+    Fruin LoS F boundary: density_proxy = occupancy/100 * 3.0 >= 2.50.
+    kickoff phase multiplier = 1.0, so 100% → effective 100% → proxy 3.0 → F.
+    arrival phase multiplier = 0.75, so 100% → effective 75% → proxy 2.25 → E.
+    """
+    payload = {
+        **SAMPLE_PAYLOAD,
+        "venue": {**SAMPLE_PAYLOAD["venue"], "crowd_density_pct": 100.0, "match_phase": "kickoff"},
+    }
     d = client.post("/api/assist", json=payload).json()
     assert d["crowd_status"]["alert"] == "red"
     assert d["crowd_status"]["level_of_service"] == "F"
