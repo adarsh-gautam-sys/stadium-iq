@@ -2,7 +2,7 @@
 # One-command deployment for StadiumIQ to Google Cloud Run
 # Fill in PROJECT_ID before running.
 
-$PROJECT_ID   = "electionguide-ai-7c996"
+$PROJECT_ID   = "genai-academy-497810"
 $SERVICE_NAME = "stadium-iq"
 $REGION       = "us-central1"
 $IMAGE        = "gcr.io/$PROJECT_ID/$SERVICE_NAME"
@@ -10,7 +10,10 @@ $VERSION      = "1.0.0"
 
 # Load GEMINI_API_KEY from .env if not set in shell environment
 if (-not $env:GEMINI_API_KEY -and (Test-Path ".env")) {
-    $env:GEMINI_API_KEY = (Get-Content ".env" | Select-String -Pattern "^GEMINI_API_KEY=(.+)$" | ForEach-Object { $_.Matches.Groups[1].Value }).Trim()
+    $match = Get-Content ".env" | Select-String -Pattern "^GEMINI_API_KEY=(.*)$"
+    if ($match) {
+        $env:GEMINI_API_KEY = $match.Matches.Groups[1].Value.Trim()
+    }
 }
 
 Write-Host "=== StadiumIQ Cloud Run Deployment ===" -ForegroundColor Cyan

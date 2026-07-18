@@ -2,7 +2,7 @@
 
 > AI-powered stadium operations and fan experience platform for FIFA World Cup 2026 — multilingual navigation, crowd density management, transport intelligence, and real-time operational alerts.
 
-**Live demo:** https://stadium-iq-239331599550.us-central1.run.app
+**Live demo:** https://stadium-iq-mvvutrbvda-uc.a.run.app
 
 ## Features
 
@@ -18,7 +18,7 @@
 ## API Quick Start
 
 ```bash
-curl -X POST https://stadium-iq-239331599550.us-central1.run.app/api/assist \
+curl -X POST https://stadium-iq-mvvutrbvda-uc.a.run.app/api/assist \
   -H "Content-Type: application/json" \
   -d '{
     "profile": {"name": "Alex", "role": "fan", "language": "en", "mobility_aid": "none", "visual_impairment": false, "hearing_impairment": false, "party_size": 2},
