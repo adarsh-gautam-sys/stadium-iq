@@ -15,6 +15,12 @@ Design decisions:
 """
 from __future__ import annotations
 
+__all__ = [
+    "generate_personalized_insights",
+    "build_gemini_prompt",
+    "_fallback_insights",
+]
+
 import logging
 
 from google import genai

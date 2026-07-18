@@ -13,6 +13,11 @@
 const STAFF_DEFAULT_BTN_TEXT = 'Generate Briefing ⚽';
 
 // ── KPI row render ────────────────────────────────────────────────────────────
+/**
+ * Populate all 4 KPI cards (crowd density, alerts, transport, AI confidence).
+ * @param {Object} data - Complete AssistResponse object from /api/assist
+ * @returns {void}
+ */
 function renderKpiRow(data) {
   const crowd    = data.crowd_status || {};
   const transArr = data.transport_options || [];
@@ -95,6 +100,11 @@ function renderKpiRow(data) {
 }
 
 // ── Navigation intel render (right col) ───────────────────────────────────────
+/**
+ * Render navigation guidance into the staff navigation intelligence panel.
+ * @param {Object} nav - NavigationGuidance object from /api/assist
+ * @returns {void}
+ */
 function renderStaffNav(nav) {
   const timeEl  = document.getElementById('nav-time');
   const routeEl = document.getElementById('nav-route');
@@ -105,6 +115,11 @@ function renderStaffNav(nav) {
 }
 
 // ── Transport table — API returns transport_options as array ──────────────────
+/**
+ * Render transport options as a status table in the staff transport panel.
+ * @param {Object[]} transportArr - Array of TransportOption objects from /api/assist
+ * @returns {void}
+ */
 function renderTransportTable(transportArr) {
   const tbody = document.getElementById('transport-tbody');
   if (!tbody) return;
@@ -142,6 +157,11 @@ function renderTransportTable(transportArr) {
 }
 
 // ── Staff alerts ──────────────────────────────────────────────────────────────
+/**
+ * Render all operational alerts into the staff alerts panel with Acknowledge buttons.
+ * @param {Object[]} alerts - Array of OperationalAlert objects from /api/assist
+ * @returns {void}
+ */
 function renderAlertsStaff(alerts) {
   const panel = document.getElementById('staff-alerts-panel');
   if (!panel) return;
@@ -189,6 +209,11 @@ function renderAlertsStaff(alerts) {
 }
 
 // ── Staff crowd block ─────────────────────────────────────────────────────────
+/**
+ * Render crowd status into the staff crowd management panel.
+ * @param {Object} crowd - CrowdStatus object from /api/assist
+ * @returns {void}
+ */
 function renderCrowdStaff(crowd) {
   const zoneEl  = document.getElementById('crowd-zone');
   const losEl   = document.getElementById('los-badge');
@@ -214,6 +239,11 @@ function renderCrowdStaff(crowd) {
 }
 
 // ── Staff insights (amber variant) ────────────────────────────────────────────
+/**
+ * Render AI operational briefing insights with amber staff styling.
+ * @param {Object} data - Complete AssistResponse object
+ * @returns {void}
+ */
 function renderInsightsStaff(data) {
   const listEl      = document.getElementById('insights-list');
   const confVal     = document.getElementById('confidence-value');
@@ -244,6 +274,11 @@ function renderInsightsStaff(data) {
 }
 
 // ── Main render ───────────────────────────────────────────────────────────────
+/**
+ * Orchestrate all staff command center renders from a complete /api/assist response.
+ * @param {Object} data - Complete AssistResponse object
+ * @returns {void}
+ */
 function renderStaff(data) {
   renderKpiRow(data);
   renderAlertsStaff(data.alerts);
@@ -255,6 +290,11 @@ function renderStaff(data) {
 }
 
 // ── Form submit ───────────────────────────────────────────────────────────────
+/**
+ * Handle staff form submission: build payload, call API, render command center.
+ * @param {SubmitEvent} e - The form submit event
+ * @returns {Promise<void>}
+ */
 async function handleStaffSubmit(e) {
   e.preventDefault();
   const btn    = document.getElementById('submit-btn');

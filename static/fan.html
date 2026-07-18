@@ -49,23 +49,20 @@
           <div class="form-section">
             <div class="section-label">👤 Personal</div>
             <div class="field-group">
-              <label>Your Name
-                <input type="text" id="profile-name" placeholder="e.g. Alex" autocomplete="given-name" />
-              </label>
-              <label>Language
-                <select id="profile-language">
-                  <option value="en">🇬🇧 English</option>
-                  <option value="es">🇲🇽 Español</option>
-                  <option value="pt">🇧🇷 Português</option>
-                  <option value="fr">🇫🇷 Français</option>
-                  <option value="ar">🇸🇦 العربية</option>
-                  <option value="de">🇩🇪 Deutsch</option>
-                  <option value="zh">🇨🇳 中文</option>
-                </select>
-              </label>
-              <label>Party Size
-                <input type="number" id="profile-party-size" value="1" min="1" max="50" />
-              </label>
+              <label for="profile-name">Your Name</label>
+              <input type="text" id="profile-name" placeholder="e.g. Alex" autocomplete="given-name" />
+              <label for="profile-language">Language</label>
+              <select id="profile-language">
+                <option value="en">🇬🇧 English</option>
+                <option value="es">🇲🇽 Español</option>
+                <option value="pt">🇧🇷 Português</option>
+                <option value="fr">🇫🇷 Français</option>
+                <option value="ar">🇸🇦 العربية</option>
+                <option value="de">🇩🇪 Deutsch</option>
+                <option value="zh">🇨🇳 中文</option>
+              </select>
+              <label for="profile-party-size">Party Size</label>
+              <input type="number" id="profile-party-size" value="1" min="1" max="50" />
             </div>
           </div>
 
@@ -74,44 +71,41 @@
           <div class="form-section">
             <div class="section-label">🏟️ Venue &amp; Match</div>
             <div class="field-group">
-              <label>Venue
-                <select id="venue-select">
-                  <option value="sofi_stadium">SoFi Stadium — Los Angeles</option>
-                  <option value="metlife_stadium">MetLife Stadium — New York/NJ</option>
-                  <option value="att_stadium">AT&amp;T Stadium — Dallas</option>
-                  <option value="nrg_stadium">NRG Stadium — Houston</option>
-                  <option value="levis_stadium">Levi's Stadium — San Francisco</option>
-                  <option value="arrowhead_stadium">Arrowhead — Kansas City</option>
-                  <option value="lincoln_financial">Lincoln Financial — Philadelphia</option>
-                  <option value="gillette_stadium">Gillette Stadium — Boston</option>
-                  <option value="hard_rock_stadium">Hard Rock Stadium — Miami</option>
-                  <option value="mercedes_benz_stadium">Mercedes-Benz — Atlanta</option>
-                  <option value="lumen_field">Lumen Field — Seattle</option>
-                  <option value="estadio_azteca">Estadio Azteca — Mexico City</option>
-                  <option value="estadio_akron">Estadio AKRON — Guadalajara</option>
-                  <option value="estadio_bbva">Estadio BBVA — Monterrey</option>
-                  <option value="bmo_field">BMO Field — Toronto</option>
-                  <option value="bc_place">BC Place — Vancouver</option>
-                </select>
-              </label>
-              <label>Seat Section
-                <input type="text" id="section" placeholder="e.g. 112A, GA North" />
-              </label>
-              <label>Current Zone / Gate
-                <input type="text" id="current-zone" placeholder="e.g. Gate C, Main Concourse" value="Gate C" />
-              </label>
-              <label>Match Phase
-                <select id="match-phase">
-                  <option value="pre_match">Pre-Match</option>
-                  <option value="arrival" selected>Arrival</option>
-                  <option value="kickoff">Kick-off</option>
-                  <option value="halftime">Half-time</option>
-                  <option value="post_match">Post-Match</option>
-                </select>
-              </label>
-              <label>Crowd Density (%)
-                <input type="number" id="crowd-density" value="65" min="0" max="100" step="5" />
-              </label>
+              <label for="venue-select">Venue</label>
+              <select id="venue-select">
+                <option value="sofi_stadium">SoFi Stadium — Los Angeles</option>
+                <option value="metlife_stadium">MetLife Stadium — New York/NJ</option>
+                <option value="att_stadium">AT&amp;T Stadium — Dallas</option>
+                <option value="nrg_stadium">NRG Stadium — Houston</option>
+                <option value="levis_stadium">Levi's Stadium — San Francisco</option>
+                <option value="arrowhead_stadium">Arrowhead — Kansas City</option>
+                <option value="lincoln_financial">Lincoln Financial — Philadelphia</option>
+                <option value="gillette_stadium">Gillette Stadium — Boston</option>
+                <option value="hard_rock_stadium">Hard Rock Stadium — Miami</option>
+                <option value="mercedes_benz_stadium">Mercedes-Benz — Atlanta</option>
+                <option value="lumen_field">Lumen Field — Seattle</option>
+                <option value="estadio_azteca">Estadio Azteca — Mexico City</option>
+                <option value="estadio_akron">Estadio AKRON — Guadalajara</option>
+                <option value="estadio_bbva">Estadio BBVA — Monterrey</option>
+                <option value="bmo_field">BMO Field — Toronto</option>
+                <option value="bc_place">BC Place — Vancouver</option>
+              </select>
+              <label for="section">Seat Section</label>
+              <input type="text" id="section" placeholder="e.g. 112A, GA North" />
+              <label for="current-zone">Current Zone / Gate</label>
+              <input type="text" id="current-zone" placeholder="e.g. Gate C, Main Concourse" value="Gate C" />
+              <label for="match-phase">Match Phase</label>
+              <select id="match-phase">
+                <option value="pre_match">Pre-Match</option>
+                <option value="arrival" selected>Arrival</option>
+                <option value="kickoff">Kick-off</option>
+                <option value="halftime">Half-time</option>
+                <option value="post_match">Post-Match</option>
+              </select>
+              <label for="crowd-density">Crowd Density (%)</label>
+              <input type="number" id="crowd-density" value="65" min="0" max="100" step="5"
+                     aria-describedby="crowd-density-hint" />
+              <p id="crowd-density-hint" class="field-hint">0–100% of venue capacity</p>
             </div>
           </div>
 
@@ -120,20 +114,18 @@
           <div class="form-section">
             <div class="section-label">🧭 Navigation</div>
             <div class="field-group">
-              <label>Destination
-                <select id="destination">
-                  <option value="seat">My Seat</option>
-                  <option value="concessions">Concessions / Food</option>
-                  <option value="restroom">Restroom</option>
-                  <option value="exit">Exit / Transport</option>
-                  <option value="first_aid">First Aid</option>
-                  <option value="fan_zone">Fan Zone</option>
-                  <option value="merchandise">Merchandise</option>
-                </select>
-              </label>
-              <label for="destination-detail">Additional Detail
-                <input type="text" id="destination-detail" placeholder="e.g. Section 112A Row 4" />
-              </label>
+              <label for="destination">Destination</label>
+              <select id="destination">
+                <option value="seat">My Seat</option>
+                <option value="concessions">Concessions / Food</option>
+                <option value="restroom">Restroom</option>
+                <option value="exit">Exit / Transport</option>
+                <option value="first_aid">First Aid</option>
+                <option value="fan_zone">Fan Zone</option>
+                <option value="merchandise">Merchandise</option>
+              </select>
+              <label for="destination-detail">Additional Detail</label>
+              <input type="text" id="destination-detail" placeholder="e.g. Section 112A Row 4" />
               <label class="checkbox-row">
                 <input type="checkbox" id="requires-elevator" />
                 Requires elevator / lift access
@@ -150,15 +142,14 @@
           <div class="form-section">
             <div class="section-label">♿ Accessibility</div>
             <div class="field-group">
-              <label>Mobility Aid
-                <select id="mobility-aid">
-                  <option value="none">None</option>
-                  <option value="cane">Cane</option>
-                  <option value="walker">Walker / Rollator</option>
-                  <option value="wheelchair">Wheelchair</option>
-                  <option value="electric_chair">Electric Wheelchair</option>
-                </select>
-              </label>
+              <label for="mobility-aid">Mobility Aid</label>
+              <select id="mobility-aid">
+                <option value="none">None</option>
+                <option value="cane">Cane</option>
+                <option value="walker">Walker / Rollator</option>
+                <option value="wheelchair">Wheelchair</option>
+                <option value="electric_chair">Electric Wheelchair</option>
+              </select>
               <label class="checkbox-row">
                 <input type="checkbox" id="visual-impairment" />
                 Visual impairment
@@ -175,24 +166,21 @@
           <div class="form-section">
             <div class="section-label">🚌 Transport</div>
             <div class="field-group">
-              <label>Primary Transport Mode
-                <select id="transport-mode">
-                  <option value="shuttle">🚌 FIFA Shuttle</option>
-                  <option value="metro">🚇 Metro / Rail</option>
-                  <option value="rideshare">🚗 Rideshare</option>
-                  <option value="walk">🚶 Walk</option>
-                  <option value="car">🅿️ Car / Parking</option>
-                </select>
-              </label>
-              <label>Direction
-                <select id="direction">
-                  <option value="arriving">Arriving at stadium</option>
-                  <option value="departing">Departing stadium</option>
-                </select>
-              </label>
-              <label>Distance from Stadium (km)
-                <input type="number" id="distance-km" value="3.5" min="0.1" max="50" step="0.5" />
-              </label>
+              <label for="transport-mode">Primary Transport Mode</label>
+              <select id="transport-mode">
+                <option value="shuttle">🚌 FIFA Shuttle</option>
+                <option value="metro">🚇 Metro / Rail</option>
+                <option value="rideshare">🚗 Rideshare</option>
+                <option value="walk">🚶 Walk</option>
+                <option value="car">🅿️ Car / Parking</option>
+              </select>
+              <label for="direction">Direction</label>
+              <select id="direction">
+                <option value="arriving">Arriving at stadium</option>
+                <option value="departing">Departing stadium</option>
+              </select>
+              <label for="distance-km">Distance from Stadium (km)</label>
+              <input type="number" id="distance-km" value="3.5" min="0.1" max="50" step="0.5" />
             </div>
           </div>
 
@@ -203,7 +191,8 @@
     </section>
 
     <!-- ── Results ──────────────────────────────────────────────────────── -->
-    <div id="results" class="results-section" role="region" aria-label="Your guidance">
+    <div id="results" class="results-section" role="region" aria-label="Your guidance"
+         aria-live="polite" aria-atomic="false" tabindex="-1">
 
       <!-- Navigation card -->
       <section class="nav-card section" aria-labelledby="nav-title">

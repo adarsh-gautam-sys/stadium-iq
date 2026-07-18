@@ -8,6 +8,10 @@
 const FAN_DEFAULT_BTN_TEXT = 'Get My Guidance ⚽';
 
 // ── Collapsible form ──────────────────────────────────────────────────────────
+/**
+ * Initialise the collapsible profile form toggle button.
+ * @returns {void}
+ */
 function initFormToggle() {
   const toggleBtn   = document.getElementById('form-toggle-btn');
   const formCollapse= document.getElementById('form-collapse');
@@ -32,6 +36,10 @@ const TRANSPORT_DETAIL = {
 let _transportData = {};
 let _activeMode    = 'shuttle';
 
+/**
+ * Attach click delegation listener to the transport chips container.
+ * @returns {void}
+ */
 function initTransportChips() {
   const chipsContainer = document.getElementById('transport-chips');
   if (!chipsContainer) return;
@@ -46,6 +54,11 @@ function initTransportChips() {
   });
 }
 
+/**
+ * Mark a single chip as active and clear all other active states.
+ * @param {string} mode - Transport mode key ('shuttle'|'metro'|'rideshare'|'walk'|'car')
+ * @returns {void}
+ */
 function setActiveChip(mode) {
   _activeMode = mode;
   document.querySelectorAll('.transport-chip').forEach((el) => {
@@ -83,6 +96,11 @@ function renderTransportChips(transport) {
   renderTransportDetail(_activeMode);
 }
 
+/**
+ * Render detailed stats for a selected transport mode into the detail box.
+ * @param {string} mode - Transport mode key
+ * @returns {void}
+ */
 function renderTransportDetail(mode) {
   const box = document.getElementById('transport-detail');
   if (!box || !_transportData) return;
@@ -112,6 +130,11 @@ function renderTransportDetail(mode) {
 }
 
 // ── Alerts render ─────────────────────────────────────────────────────────────
+/**
+ * Render fan-relevant alerts into the alerts list.
+ * @param {Object[]} alerts - Array of OperationalAlert objects from /api/assist
+ * @returns {void}
+ */
 function renderAlertsFan(alerts) {
   const listEl = document.getElementById('fan-alerts');
   if (!listEl) return;
@@ -133,6 +156,12 @@ function renderAlertsFan(alerts) {
 }
 
 // ── Transport chips — API returns transport_options as an array of objects ─────
+/**
+ * Build and render transport chips from the API transport_options array.
+ * Selects the chip with the lowest estimated wait as the recommended mode.
+ * @param {Object[]} transportArr - Array of TransportOption objects from /api/assist
+ * @returns {void}
+ */
 function renderTransportChips(transportArr) {
   const chipsEl = document.getElementById('transport-chips');
   if (!chipsEl) return;
@@ -178,6 +207,11 @@ function renderTransportChips(transportArr) {
 }
 
 // ── Main render — maps API response keys correctly ────────────────────────────
+/**
+ * Orchestrate all fan dashboard renders from a complete /api/assist response.
+ * @param {Object} data - Complete AssistResponse object
+ * @returns {void}
+ */
 function renderFan(data) {
   renderNavigationBase(data.navigation);
   renderCrowdBase(data.crowd_status);    // API uses crowd_status
@@ -189,6 +223,11 @@ function renderFan(data) {
 
 
 // ── Form submit ───────────────────────────────────────────────────────────────
+/**
+ * Handle fan form submission: build payload, call API, render results.
+ * @param {SubmitEvent} e - The form submit event
+ * @returns {Promise<void>}
+ */
 async function handleFanSubmit(e) {
   e.preventDefault();
   const btn    = document.getElementById('submit-btn');

@@ -9,6 +9,11 @@
 const VOL_DEFAULT_BTN_TEXT = 'Refresh Briefing ⚽';
 
 // ── Quick status pills ────────────────────────────────────────────────────────
+/**
+ * Update the three status pills (crowd LoS, zone, match phase) from crowd data.
+ * @param {Object} crowd - CrowdStatus object from /api/assist
+ * @returns {void}
+ */
 function updateStatusPills(crowd) {
   const crowdPill = document.getElementById('pill-crowd');
   const zonePill  = document.getElementById('pill-zone');
@@ -28,6 +33,12 @@ function updateStatusPills(crowd) {
 }
 
 // ── Fan Assistance Radar render ───────────────────────────────────────────────
+/**
+ * Render the Fan Assistance Radar section: LoS badge, occupancy bar,
+ * and auto-generated volunteer guidance script.
+ * @param {Object} crowd - CrowdStatus object from /api/assist
+ * @returns {void}
+ */
 function renderRadar(crowd) {
   const losEl   = document.getElementById('radar-los');
   const zoneEl  = document.getElementById('radar-zone');
@@ -68,6 +79,11 @@ function renderRadar(crowd) {
 }
 
 // ── Personal navigation (compact) ─────────────────────────────────────────────
+/**
+ * Render volunteer personal navigation guidance (compact form of navigation card).
+ * @param {Object} nav - NavigationGuidance object from /api/assist
+ * @returns {void}
+ */
 function renderVolNav(nav) {
   const timeEl   = document.getElementById('nav-time');
   const routeEl  = document.getElementById('nav-route');
@@ -84,6 +100,12 @@ function renderVolNav(nav) {
 }
 
 // ── Volunteer alerts (warning + critical only) ─────────────────────────────────
+/**
+ * Render volunteer alerts — only warning and critical severity shown.
+ * Info alerts are suppressed to reduce noise for volunteers.
+ * @param {Object[]} alerts - Array of OperationalAlert objects from /api/assist
+ * @returns {void}
+ */
 function renderAlertsVol(alerts) {
   const listEl  = document.getElementById('vol-alerts');
   const clearEl = document.getElementById('vol-alerts-clear');
@@ -118,6 +140,11 @@ function renderAlertsVol(alerts) {
 }
 
 // ── Volunteer briefing (teal insights) ────────────────────────────────────────
+/**
+ * Render volunteer AI briefing insights with teal styling.
+ * @param {Object} data - Complete AssistResponse object
+ * @returns {void}
+ */
 function renderInsightsVol(data) {
   const listEl   = document.getElementById('insights-list');
   const confVal  = document.getElementById('confidence-value');
@@ -148,6 +175,11 @@ function renderInsightsVol(data) {
 }
 
 // ── Copy guidance to clipboard ─────────────────────────────────────────────────
+/**
+ * Initialise the "Copy Guidance" button with clipboard write logic.
+ * Copies volunteer script + AI briefing as formatted plain text.
+ * @returns {void}
+ */
 function initCopyGuidance() {
   const copyBtn = document.getElementById('copy-guidance-btn');
   if (!copyBtn) return;
@@ -176,6 +208,10 @@ function initCopyGuidance() {
 }
 
 // ── Collapsible form ──────────────────────────────────────────────────────────
+/**
+ * Initialise the collapsible refresh form toggle button.
+ * @returns {void}
+ */
 function initVolFormToggle() {
   const toggleBtn    = document.getElementById('vol-form-toggle');
   const formCollapse = document.getElementById('vol-form-collapse');
@@ -189,6 +225,11 @@ function initVolFormToggle() {
 }
 
 // ── Main render ───────────────────────────────────────────────────────────────────
+/**
+ * Orchestrate all volunteer dashboard renders from a complete /api/assist response.
+ * @param {Object} data - Complete AssistResponse object
+ * @returns {void}
+ */
 function renderVolunteer(data) {
   updateStatusPills(data.crowd_status);  // API: crowd_status
   renderRadar(data.crowd_status);
@@ -200,6 +241,11 @@ function renderVolunteer(data) {
 
 
 // ── Form submit ───────────────────────────────────────────────────────────────
+/**
+ * Handle volunteer refresh form submission: build payload, call API, render.
+ * @param {SubmitEvent} e - The form submit event
+ * @returns {Promise<void>}
+ */
 async function handleVolSubmit(e) {
   e.preventDefault();
   const btn    = document.getElementById('submit-btn');

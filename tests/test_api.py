@@ -221,3 +221,91 @@ def test_insights_are_non_empty_strings(client: TestClient) -> None:
     d = client.post("/api/assist", json=SAMPLE_PAYLOAD).json()
     assert len(d["insights"]) == 3
     assert all(isinstance(s, str) and len(s) > 10 for s in d["insights"])
+
+
+# ── Role coverage ─────────────────────────────────────────────────────────────
+
+@pytest.mark.parametrize("role", ["fan", "staff", "volunteer"])
+def test_all_roles_return_valid_response(client: TestClient, role: str) -> None:
+    """All three user roles return a complete, valid AssistResponse."""
+    payload = {**SAMPLE_PAYLOAD, "profile": {**SAMPLE_PAYLOAD["profile"], "role": role}}
+    r = client.post("/api/assist", json=payload)
+    assert r.status_code == 200
+    d = r.json()
+    assert "navigation" in d
+    assert "crowd_status" in d
+    assert len(d["insights"]) == 3
+    assert 0 < d["confidence_score"] <= 1
+
+
+# ── Language coverage ─────────────────────────────────────────────────────────
+
+@pytest.mark.parametrize("language", ["en", "es", "pt", "fr", "ar", "de", "zh"])
+def test_all_languages_accepted(client: TestClient, language: str) -> None:
+    """All 7 supported language codes produce a valid HTTP 200 response."""
+    payload = {**SAMPLE_PAYLOAD, "profile": {**SAMPLE_PAYLOAD["profile"], "language": language}}
+    r = client.post("/api/assist", json=payload)
+    assert r.status_code == 200
+    assert len(r.json()["insights"]) == 3
+
+
+# ── Dashboard route coverage ──────────────────────────────────────────────────
+
+@pytest.mark.parametrize("route", ["/", "/fan", "/staff", "/volunteer"])
+def test_all_dashboard_routes_return_html(client: TestClient, route: str) -> None:
+    """All 4 dashboard routes (landing + 3 role dashboards) return HTTP 200 HTML."""
+    r = client.get(route)
+    assert r.status_code == 200
+    assert "text/html" in r.headers.get("content-type", "")
+
+
+# ── LoS F boundary condition ──────────────────────────────────────────────────
+
+def test_los_f_at_full_capacity(client: TestClient) -> None:
+    """100% crowd density triggers LoS F and red alert — Fruin boundary test."""
+    payload = {**SAMPLE_PAYLOAD, "venue": {**SAMPLE_PAYLOAD["venue"], "crowd_density_pct": 100.0}}
+    d = client.post("/api/assist", json=payload).json()
+    assert d["crowd_status"]["alert"] == "red"
+    assert d["crowd_status"]["level_of_service"] == "F"
+
+
+# ── New security headers ──────────────────────────────────────────────────────
+
+def test_permissions_policy_header_present(client: TestClient) -> None:
+    """Permissions-Policy header restricts browser features on all responses."""
+    r = client.get("/")
+    assert "permissions-policy" in r.headers
+
+
+def test_x_permitted_cross_domain_header_present(client: TestClient) -> None:
+    """X-Permitted-Cross-Domain-Policies header is set to 'none'."""
+    r = client.get("/")
+    assert r.headers.get("x-permitted-cross-domain-policies") == "none"
+
+
+def test_csp_no_unsafe_inline_in_script_src(client: TestClient) -> None:
+    """CSP script-src must not contain 'unsafe-inline' after security hardening."""
+    r = client.get("/")
+    csp = r.headers.get("content-security-policy", "")
+    # Extract the script-src directive
+    script_src = next((d for d in csp.split(";") if "script-src" in d), "")
+    assert "'unsafe-inline'" not in script_src
+
+
+# ── Insights prompt builder (unit test) ──────────────────────────────────────
+
+def test_build_gemini_prompt_includes_user_name() -> None:
+    """build_gemini_prompt injects the user's name into the prompt string."""
+    from app.insights import build_gemini_prompt
+    from app.stadium import compute_crowd_status, compute_navigation, compute_transport_options
+
+    req = __import__("app.models", fromlist=["AssistRequest"]).AssistRequest.model_validate(
+        SAMPLE_PAYLOAD
+    )
+    crowd = compute_crowd_status(req)
+    nav = compute_navigation(req, crowd)
+    transport = compute_transport_options(req)
+    prompt = build_gemini_prompt(req, nav, crowd, transport)
+    assert req.profile.name in prompt
+    assert "English" in prompt  # Language specified
+

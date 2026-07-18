@@ -125,6 +125,13 @@ async function fetchAssist(payload) {
 }
 
 // ── Button loading state ─────────────────────────────────────────────────────
+/**
+ * Update a submit button's loading state.
+ * @param {HTMLButtonElement} btn - The button element to update
+ * @param {boolean} isLoading - True to show loading state, false to restore
+ * @param {string} defaultText - Text to restore when not loading
+ * @returns {void}
+ */
 function setLoading(btn, isLoading, defaultText) {
   btn.disabled = isLoading;
   if (isLoading) {
@@ -137,12 +144,24 @@ function setLoading(btn, isLoading, defaultText) {
 }
 
 // ── Status message ────────────────────────────────────────────────────────────
+/**
+ * Display an error or success status message in a DOM element.
+ * @param {HTMLElement|null} el - The element to update (no-op if null)
+ * @param {string} msg - The message text to display
+ * @param {'error'|'success'|'info'} [type='error'] - Visual style variant
+ * @returns {void}
+ */
 function setStatus(el, msg, type = 'error') {
   if (!el) return;
   el.textContent = '⚠️ ' + msg;
   el.className = 'status-msg ' + type;
   el.style.display = 'block';
 }
+/**
+ * Clear and hide a status message element.
+ * @param {HTMLElement|null} el - The element to clear (no-op if null)
+ * @returns {void}
+ */
 function clearStatus(el) {
   if (!el) return;
   el.textContent = '';
@@ -151,6 +170,16 @@ function clearStatus(el) {
 }
 
 // ── Shared navigation render ──────────────────────────────────────────────────
+/**
+ * Render navigation guidance data into the shared navigation card DOM elements.
+ * @param {Object} nav - NavigationGuidance object from /api/assist response
+ * @param {number} nav.estimated_minutes - Estimated walk time in minutes
+ * @param {string} nav.route_description - Full route description text
+ * @param {string} nav.alternative_route - Alternative route suggestion
+ * @param {string} nav.crowd_level - Crowd level: 'low'|'moderate'|'high'|'critical'
+ * @param {string} nav.accessibility_notes - Accessibility-specific route notes
+ * @returns {void}
+ */
 function renderNavigationBase(nav) {
   const timeEl = document.getElementById('nav-time');
   const routeEl = document.getElementById('nav-route');
@@ -180,6 +209,16 @@ function renderNavigationBase(nav) {
 }
 
 // ── Shared crowd render — uses 'crowd_status' key from API ───────────────────
+/**
+ * Render crowd status data into the shared crowd card DOM elements.
+ * @param {Object} crowd - CrowdStatus object from /api/assist response
+ * @param {string} crowd.zone - Current zone name
+ * @param {string} crowd.level_of_service - Fruin LoS letter A–F
+ * @param {number} crowd.occupancy_pct - Occupancy as a percentage 0–100
+ * @param {string} crowd.recommendation - Human-readable crowd recommendation
+ * @param {'green'|'amber'|'red'} crowd.alert - Severity colour
+ * @returns {void}
+ */
 function renderCrowdBase(crowd) {
   const zoneEl  = document.getElementById('crowd-zone');
   const losBadge= document.getElementById('los-badge');
@@ -203,6 +242,15 @@ function renderCrowdBase(crowd) {
 
 
 // ── Shared insights + meta render ─────────────────────────────────────────────
+/**
+ * Render AI insights, confidence score, storage status, and methodology.
+ * @param {Object} data - Full /api/assist response object
+ * @param {string[]} data.insights - Array of exactly 3 insight strings
+ * @param {number} data.confidence_score - Confidence 0.0–1.0
+ * @param {string} data.storage_status - Storage confirmation string
+ * @param {string} data.methodology - Data source methodology string
+ * @returns {void}
+ */
 function renderInsightsBase(data) {
   const listEl   = document.getElementById('insights-list');
   const confVal  = document.getElementById('confidence-value');
@@ -237,6 +285,10 @@ function renderInsightsBase(data) {
 }
 
 // ── Show results section ──────────────────────────────────────────────────────
+/**
+ * Make the results section visible and scroll it into view.
+ * @returns {void}
+ */
 function showResults() {
   const el = document.getElementById('results');
   if (!el) return;
@@ -245,12 +297,25 @@ function showResults() {
 }
 
 // ── Role preference localStorage ──────────────────────────────────────────────
+/**
+ * Persist the chosen role to localStorage for auto-redirect on next visit.
+ * @param {'fan'|'staff'|'volunteer'} role - The role to save
+ * @returns {void}
+ */
 function saveRole(role) {
   try { localStorage.setItem('stadiumiq_role', role); } catch (_) {}
 }
+/**
+ * Retrieve the saved role preference from localStorage.
+ * @returns {'fan'|'staff'|'volunteer'|null} Saved role or null if not set
+ */
 function getRole() {
   try { return localStorage.getItem('stadiumiq_role'); } catch (_) { return null; }
 }
+/**
+ * Clear the saved role preference from localStorage (used by Switch Role).
+ * @returns {void}
+ */
 function clearRole() {
   try { localStorage.removeItem('stadiumiq_role'); } catch (_) {}
 }
