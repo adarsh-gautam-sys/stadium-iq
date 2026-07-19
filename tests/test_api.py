@@ -319,3 +319,61 @@ def test_build_gemini_prompt_includes_user_name() -> None:
     assert req.profile.name in prompt
     assert "English" in prompt  # Language specified
 
+
+# ── Exception handler & logging setup tests (reaches 100% coverage on main.py) ──
+
+@pytest.mark.asyncio
+async def test_validation_error_handler_direct() -> None:
+    """Manually calling validation_handler returns 422 JSONResponse."""
+    import json
+    from app.main import validation_handler
+    from pydantic import ValidationError
+    from app.models import FanProfile
+
+    with pytest.raises(ValidationError) as exc_info:
+        # Trigger validation error: name cannot be empty
+        FanProfile(name="", party_size=1)
+
+    response = await validation_handler(None, exc_info.value)
+    assert response.status_code == 422
+    body = json.loads(response.body)
+    assert "detail" in body
+
+
+def test_setup_cloud_logging_success(monkeypatch: pytest.MonkeyPatch) -> None:
+    """_setup_cloud_logging successfully configures cloud logging client when configured."""
+    from unittest.mock import MagicMock, patch
+    from app.config import settings
+    from app.main import _setup_cloud_logging
+
+    monkeypatch.setattr(settings, "google_cloud_project", "test-project-123")
+
+    mock_client_instance = MagicMock()
+    mock_gcp_logging = MagicMock()
+    mock_gcp_logging.Client = MagicMock(return_value=mock_client_instance)
+
+    with patch("app.main._GCP_LOGGING_AVAILABLE", True), \
+         patch("app.main._gcp_logging", mock_gcp_logging):
+        _setup_cloud_logging()
+        mock_gcp_logging.Client.assert_called_once_with(project="test-project-123")
+        mock_client_instance.setup_logging.assert_called_once()
+
+
+def test_setup_cloud_logging_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    """_setup_cloud_logging falls back to standard basicConfig on client error."""
+    from unittest.mock import MagicMock, patch
+    from app.config import settings
+    from app.main import _setup_cloud_logging
+
+    monkeypatch.setattr(settings, "google_cloud_project", "test-project-123")
+
+    mock_gcp_logging = MagicMock()
+    mock_gcp_logging.Client = MagicMock(side_effect=Exception("Auth error"))
+
+    with patch("app.main._GCP_LOGGING_AVAILABLE", True), \
+         patch("app.main._gcp_logging", mock_gcp_logging):
+        _setup_cloud_logging()
+        # Should gracefully return and fall back to standard logging without raising
+
+
+

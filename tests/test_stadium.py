@@ -383,3 +383,17 @@ def test_named_constants_match_expected_values() -> None:
     assert ALERT_THRESHOLD_SURGE == 60.0  # Surge warning threshold
     assert FRUIN_MAX_DENSITY == 3.0       # Max density proxy (p/m²)
 
+
+def test_transport_sorting() -> None:
+    """compute_transport_options places preferred mode first, and then sorts other options by total time ascending."""
+    req = make_request(transport_mode="rideshare")
+    options = compute_transport_options(req)
+
+    # First option must be the preferred mode (rideshare)
+    assert options[0].mode == "rideshare"
+
+    # The remaining options must be sorted by total time (wait + journey) ascending
+    remaining_times = [opt.estimated_wait_minutes + opt.estimated_journey_minutes for opt in options[1:]]
+    assert remaining_times == sorted(remaining_times)
+
+

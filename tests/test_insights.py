@@ -146,3 +146,77 @@ async def test_generate_insights_without_key_uses_fallback(monkeypatch: pytest.M
     insights = await generate_personalized_insights(req, nav, crowd, transport, [])
     assert len(insights) == 3
     assert all(len(s) > 10 for s in insights)
+
+
+# ── Mock tests for live Gemini paths (reaches 100% coverage on insights.py) ────
+
+@pytest.mark.asyncio
+async def test_generate_insights_gemini_success() -> None:
+    """If Gemini client is present and returns valid lines, return them."""
+    from unittest.mock import AsyncMock, MagicMock, patch
+
+    mock_response = MagicMock()
+    mock_response.text = (
+        "Tester, your route to the seat takes about 8.5 minutes.\n"
+        "The crowd level in Gate C is moderate, so keep moving.\n"
+        "Take the shuttle from Gate B Shuttle Bay for the fastest journey."
+    )
+
+    mock_client = MagicMock()
+    mock_client.aio.models.generate_content = AsyncMock(return_value=mock_response)
+
+    with patch("app.insights._gemini_client", mock_client):
+        req = _make_request()
+        nav = _make_nav()
+        crowd = _make_crowd()
+        transport = _make_transport()
+
+        insights = await generate_personalized_insights(req, nav, crowd, transport, [])
+        assert len(insights) == 3
+        assert "Tester" in insights[0]
+        assert "moderate" in insights[1]
+        assert "shuttle" in insights[2]
+
+
+@pytest.mark.asyncio
+async def test_generate_insights_gemini_insufficient_output() -> None:
+    """If Gemini client returns less than 2 lines, fall back to deterministic insights."""
+    from unittest.mock import AsyncMock, MagicMock, patch
+
+    mock_response = MagicMock()
+    # Less than 2 lines containing >10 chars
+    mock_response.text = "Hello world."
+
+    mock_client = MagicMock()
+    mock_client.aio.models.generate_content = AsyncMock(return_value=mock_response)
+
+    with patch("app.insights._gemini_client", mock_client):
+        req = _make_request(name="Priya")
+        nav = _make_nav()
+        crowd = _make_crowd()
+        transport = _make_transport()
+
+        insights = await generate_personalized_insights(req, nav, crowd, transport, [])
+        assert len(insights) == 3
+        # Should be the fallback insights, containing "Priya"
+        assert any("Priya" in s for s in insights)
+
+
+@pytest.mark.asyncio
+async def test_generate_insights_gemini_exception() -> None:
+    """If Gemini call raises an exception, fall back gracefully to deterministic insights."""
+    from unittest.mock import AsyncMock, MagicMock, patch
+
+    mock_client = MagicMock()
+    mock_client.aio.models.generate_content = AsyncMock(side_effect=RuntimeError("API error"))
+
+    with patch("app.insights._gemini_client", mock_client):
+        req = _make_request(name="Carlos")
+        nav = _make_nav()
+        crowd = _make_crowd()
+        transport = _make_transport()
+
+        insights = await generate_personalized_insights(req, nav, crowd, transport, [])
+        assert len(insights) == 3
+        assert any("Carlos" in s for s in insights)
+
