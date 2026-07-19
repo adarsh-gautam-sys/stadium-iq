@@ -271,7 +271,11 @@ function renderInsightsBase(data) {
 
   const pct = Math.round((data.confidence_score || 0) * 100);
   if (confVal)  confVal.textContent = pct + '%';
-  if (confFill) setTimeout(() => { confFill.style.width = pct + '%'; }, 100);
+  if (confFill) {
+    setTimeout(() => { confFill.style.width = pct + '%'; }, 100);
+    const confBar = document.getElementById('confidence-bar');
+    if (confBar) confBar.setAttribute('aria-valuenow', String(pct));
+  }
 
   if (storagePill) {
     storagePill.textContent = '💾 ' + (

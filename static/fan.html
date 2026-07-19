@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="/static/dashboard-fan.css" />
 </head>
 <body>
-  <a class="skip-link" href="#results">Skip to guidance results</a>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
 
   <!-- ── Sticky header ──────────────────────────────────────────────────── -->
   <header class="dash-header" role="banner" aria-label="Fan dashboard header">
@@ -33,17 +33,18 @@
     <span class="greeting" id="greeting-display">👤 Hey there!</span>
   </div>
 
-  <main class="fan-main">
+  <main id="main-content" class="fan-main">
 
     <!-- ── Collapsible profile form ─────────────────────────────────────── -->
     <section aria-label="Profile and guidance form">
       <button class="form-toggle-btn" id="form-toggle-btn"
-              aria-expanded="false" aria-controls="form-collapse">
+              aria-expanded="false" aria-controls="form-collapse"
+              aria-label="Update your profile and get guidance">
         <span>⚙️ Update Your Profile &amp; Get Guidance</span>
         <span class="chevron" aria-hidden="true">▼</span>
       </button>
 
-      <div id="form-collapse" class="form-panel-collapse" role="region">
+      <div id="form-collapse" class="form-panel-collapse" role="region" aria-labelledby="form-toggle-btn">
         <form id="fan-form" novalidate>
 
           <div class="form-section">
@@ -115,15 +116,18 @@
             <div class="section-label">🧭 Navigation</div>
             <div class="field-group">
               <label for="destination">Destination</label>
-              <select id="destination">
+              <select id="destination" aria-describedby="destination-hint">
                 <option value="seat">My Seat</option>
-                <option value="concessions">Concessions / Food</option>
+                <option value="food_beverage">Concessions / Food</option>
                 <option value="restroom">Restroom</option>
                 <option value="exit">Exit / Transport</option>
-                <option value="first_aid">First Aid</option>
+                <option value="medical">First Aid / Medical</option>
                 <option value="fan_zone">Fan Zone</option>
-                <option value="merchandise">Merchandise</option>
+                <option value="transport_hub">Transport Hub</option>
+                <option value="gate">Gate</option>
+                <option value="accessibility">Accessibility Services</option>
               </select>
+              <p id="destination-hint" class="field-hint">Where would you like to go?</p>
               <label for="destination-detail">Additional Detail</label>
               <input type="text" id="destination-detail" placeholder="e.g. Section 112A Row 4" />
               <label class="checkbox-row">
@@ -265,7 +269,7 @@
               <span id="confidence-value">—</span>
             </div>
             <div class="confidence-bar" role="progressbar" aria-label="AI confidence"
-                 aria-valuemin="0" aria-valuemax="100">
+                 aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="confidence-bar">
               <div class="confidence-fill" id="confidence-fill"></div>
             </div>
           </div>

@@ -21,6 +21,7 @@ Data sources cited for every empirical constant:
 
 Performance notes:
 - get_venue_capacity() uses @functools.lru_cache — bounded input set (16 venues).
+- get_fruin_los() uses @functools.lru_cache — bounded input combinations.
 - get_crowd_factor() uses @functools.lru_cache — bounded LoS alphabet (6 values).
 - All public functions are pure (no side effects) — safe for concurrent use.
 """
@@ -41,6 +42,13 @@ from app.models import (
     TransportOption,
     Venue,
 )
+
+# ── Crowd alert thresholds ─────────────────────────────────────────────────────
+# Source: FIFA Safety and Security Division (2021). Stadium Safety Manual, §3.2.
+# Amber at 70%, red at 85% — global venue safety standards.
+ALERT_THRESHOLD_RED: float = 85.0    # % — activate critical crowd management
+ALERT_THRESHOLD_AMBER: float = 70.0  # % — increase volunteer presence
+ALERT_THRESHOLD_SURGE: float = 60.0  # % — concourse surge warning at phase transition
 
 # ── Venue capacities ──────────────────────────────────────────────────────────
 # Source: FIFA World Cup 2026 Official Host Venue Programme (2023)
@@ -79,11 +87,22 @@ FRUIN_LOS: dict[str, tuple[float, float, str]] = {
     "F": (2.50, 3.50, "critical"),  # > 2.50 p/m² — dangerous crush risk
 }
 
+# Fruin density proxy thresholds (persons/m²) — mapped from occupancy percentage
+FRUIN_PROXY_A: float = 0.30   # Below this → LoS A (free flow)
+FRUIN_PROXY_B: float = 0.50   # Below this → LoS B
+FRUIN_PROXY_C: float = 0.70   # Below this → LoS C
+FRUIN_PROXY_D: float = 1.00   # Below this → LoS D
+FRUIN_PROXY_E: float = 2.50   # Below this → LoS E; at or above → LoS F (crush risk)
+FRUIN_MAX_DENSITY: float = 3.0  # p/m² — maximum density used in proxy mapping
+
 # ── Walk speed constants ───────────────────────────────────────────────────────
 # Source: Transport for London (2010). Pedestrian Comfort Guidance.
 WALK_SPEED_FREE_FLOW_MS: float = 1.2    # m/s — unobstructed adult walking speed
 WALK_SPEED_CROWDED_MS: float = 0.8     # m/s — at LoS C+ conditions
 WALK_SPEED_MOBILITY_AID_MS: float = 0.5  # m/s — wheelchair/walker design speed
+
+# LoS grades where walk speed is degraded from free-flow to crowded speed
+LOS_CROWDED_GRADES: frozenset[str] = frozenset({"C", "D", "E", "F"})
 
 # ── Estimated navigation distances by destination (metres) ────────────────────
 # Based on average stadium concourse layout design from FIFA venue blueprints.
@@ -113,7 +132,7 @@ MATCH_PHASE_DENSITY_MULTIPLIER: dict[MatchPhase, float] = {
 
 # ── Transport wait time baselines (minutes) ───────────────────────────────────
 # Source: FIFA WC 2026 Host City Transportation Operation Plans (2024).
-# Zone 1 = < 0.5 km from stadium; Zone 2 = 0.5–2 km; Zone 3 = 2–10 km; Zone 4 = > 10 km.
+# Zone 1 = < 0.5 km; Zone 2 = 0.5–2 km; Zone 3 = 2–10 km; Zone 4 = > 10 km.
 
 TRANSPORT_WAIT_BASE_MIN: dict[TransportMode, float] = {
     TransportMode.walk:      0.0,    # Immediate; no wait
@@ -131,8 +150,57 @@ TRANSPORT_PHASE_MULTIPLIER: dict[MatchPhase, float] = {
     MatchPhase.post_match: 2.2,     # Worst case; all fans departing simultaneously
 }
 
+# Average journey speeds by mode (km/h) — FIFA TOPs estimates
+TRANSPORT_MODE_SPEEDS_KMH: dict[TransportMode, float] = {
+    TransportMode.walk:      5.0,
+    TransportMode.shuttle:  35.0,
+    TransportMode.metro:    40.0,
+    TransportMode.rideshare: 30.0,
+    TransportMode.car:      25.0,
+}
+
+# Static transport notes template (direction label substituted at call time)
+TRANSPORT_NOTES_TEMPLATE: dict[TransportMode, str] = {
+    TransportMode.shuttle:  "Free FIFA shuttle {dir} stadium. Runs every 8 min during match day.",
+    TransportMode.metro:    "Dedicated match-day metro service {dir} city centre. No surcharge.",
+    TransportMode.rideshare: "Rideshare surge likely during {phase}. Book in advance.",
+    TransportMode.walk:     "Walking recommended only within 1 km. Follow pedestrian wayfinding.",
+    TransportMode.car:      "Parking passes must be pre-purchased. Follow steward directions.",
+}
+
 ACCESSIBILITY_ELEVATOR_EXTRA_MIN: float = 3.5   # Additional time for elevator use
 ACCESSIBILITY_ROUTE_EXTRA_FACTOR: float = 1.35  # Accessible routes are longer
+
+# ── Crowd zone recommendation strings (keyed by LoS grade) ────────────────────
+LOS_RECOMMENDATIONS: dict[str, str] = {
+    "A": "Concourses are clear — move freely to your destination.",
+    "B": "Light crowd — comfortable movement; minor delays possible at concession stands.",
+    "C": "Moderate congestion — allow extra time; follow staff guidance.",
+    "D": "Significant crowding — consider waiting 5–10 minutes before moving.",
+    "E": "Heavy congestion — move only if necessary; use designated flow routes.",
+    "F": "Critical crowd density — stay in place and follow emergency announcements.",
+}
+
+# ── Alternative route strings (keyed by destination type) ─────────────────────
+ALTERNATIVE_ROUTES: dict[DestinationType, str] = {
+    DestinationType.seat:          "Alternative: Enter via the next gate along the concourse to reduce walking distance.",
+    DestinationType.restroom:      "Alternative: Family restrooms are near every gate entrance — typically less congested.",
+    DestinationType.food_beverage: "Alternative: Mobile kiosks on the upper concourse often have shorter queues.",
+    DestinationType.exit:          "Alternative: Use any numbered gate exit — all connect to the external transport concourse.",
+    DestinationType.transport_hub: "Alternative: Shuttle pickup is available at all main gate exits.",
+    DestinationType.medical:       "Alternative: Volunteer first-aiders are stationed at every gate — flag one for immediate help.",
+    DestinationType.gate:          "Alternative: Any marked gate along your concourse level will accept your ticket.",
+    DestinationType.fan_zone:      "Alternative: Fan zones are available at Gate A and Gate D — choose the less-crowded one.",
+    DestinationType.accessibility: "Alternative: Any volunteer in a green vest can escort you to accessibility services.",
+}
+
+# Departure point descriptions for each transport mode
+TRANSPORT_DEPARTURE_POINTS: dict[TransportMode, str] = {
+    TransportMode.metro:    "Stadium Metro Station — follow green 'Metro' signs from main concourse",
+    TransportMode.rideshare: "Rideshare pickup zone — East car park perimeter road",
+    TransportMode.walk:     "Main concourse exit",
+    TransportMode.car:      "Car park P1/P2 — follow blue 'P' signs from all exits",
+}
 
 
 # ── Cached lookup functions ────────────────────────────────────────────────────
@@ -143,7 +211,7 @@ def get_venue_capacity(venue: Venue) -> int:
     return VENUE_CAPACITY[venue]
 
 
-@functools.lru_cache(maxsize=16)
+@functools.lru_cache(maxsize=64)
 def get_fruin_los(occupancy_pct: float, phase: MatchPhase) -> str:
     """Map occupancy percentage + match phase to Fruin Level of Service letter.
 
@@ -154,16 +222,16 @@ def get_fruin_los(occupancy_pct: float, phase: MatchPhase) -> str:
     """
     effective = min(occupancy_pct * MATCH_PHASE_DENSITY_MULTIPLIER[phase], 100.0)
     # Map effective occupancy to Fruin density proxy (0–100% → 0–3.0 p/m²)
-    density_proxy = effective / 100.0 * 3.0
-    if density_proxy < 0.30:
+    density_proxy = effective / 100.0 * FRUIN_MAX_DENSITY
+    if density_proxy < FRUIN_PROXY_A:
         return "A"
-    if density_proxy < 0.50:
+    if density_proxy < FRUIN_PROXY_B:
         return "B"
-    if density_proxy < 0.70:
+    if density_proxy < FRUIN_PROXY_C:
         return "C"
-    if density_proxy < 1.00:
+    if density_proxy < FRUIN_PROXY_D:
         return "D"
-    if density_proxy < 2.50:
+    if density_proxy < FRUIN_PROXY_E:
         return "E"
     return "F"
 
@@ -191,7 +259,7 @@ def compute_crowd_status(request: AssistRequest) -> CrowdStatus:
     Algorithm:
     1. Apply match-phase density multiplier to raw occupancy percentage.
     2. Map effective density to Fruin LoS letter (A–F).
-    3. Determine alert colour: green (<70%), amber (70–85%), red (>85%).
+    3. Determine alert colour: green (<70%), amber (70–85%), red (>=85%).
     4. Generate actionable zone recommendation based on LoS.
 
     Source: Fruin (1971); FIFA Safety Manual Section 3.2.
@@ -201,29 +269,83 @@ def compute_crowd_status(request: AssistRequest) -> CrowdStatus:
     los = get_fruin_los(occ, phase)
     _, _, crowd_level = FRUIN_LOS[los]
 
-    if occ < 70.0:
-        alert: str = "green"
-    elif occ < 85.0:
+    if occ >= ALERT_THRESHOLD_RED:
+        alert: str = "red"
+    elif occ >= ALERT_THRESHOLD_AMBER:
         alert = "amber"
     else:
-        alert = "red"
-
-    recommendations: dict[str, str] = {
-        "A": "Concourses are clear — move freely to your destination.",
-        "B": "Light crowd — comfortable movement; minor delays possible at concession stands.",
-        "C": "Moderate congestion — allow extra time; follow staff guidance.",
-        "D": "Significant crowding — consider waiting 5–10 minutes before moving.",
-        "E": "Heavy congestion — move only if necessary; use designated flow routes.",
-        "F": "Critical crowd density — stay in place and follow emergency announcements.",
-    }
+        alert = "green"
 
     return CrowdStatus(
         zone=request.venue.current_zone,
         occupancy_pct=round(occ, 1),
         level_of_service=los,
         alert=alert,
-        recommendation=recommendations[los],
+        recommendation=LOS_RECOMMENDATIONS[los],
     )
+
+
+def _compute_walk_speed(request: AssistRequest, los: str) -> float:
+    """Return appropriate walk speed (m/s) for the fan's mobility profile and LoS.
+
+    Source: TfL Pedestrian Comfort Guidance (2010).
+    """
+    if _has_mobility_restriction(request):
+        return WALK_SPEED_MOBILITY_AID_MS
+    if los in LOS_CROWDED_GRADES:
+        return WALK_SPEED_CROWDED_MS
+    return WALK_SPEED_FREE_FLOW_MS
+
+
+def _compute_route_distance(request: AssistRequest) -> float:
+    """Return effective route distance (m) adjusted for accessible routing.
+
+    Accessible routes are 35% longer per FIFA venue blueprint accessibility
+    design standards.
+    """
+    base_dist = DESTINATION_BASE_DISTANCE_M[request.navigation.destination]
+    if request.navigation.requires_accessible_route or _has_mobility_restriction(request):
+        return base_dist * ACCESSIBILITY_ROUTE_EXTRA_FACTOR
+    return base_dist
+
+
+def _build_route_parts(request: AssistRequest, los: str) -> list[str]:
+    """Build ordered list of route instruction strings for the navigation card."""
+    destination = request.navigation.destination
+    parts: list[str] = [
+        f"From {request.venue.current_zone}, head towards the nearest"
+        f" {destination.value.replace('_', ' ')} signage.",
+    ]
+    if los in ("D", "E", "F"):
+        parts.append("Follow the marked crowd-flow corridor to avoid congestion.")
+    if request.navigation.requires_accessible_route or request.navigation.requires_elevator:
+        parts.append("Use the accessible route marked with the blue wheelchair symbol.")
+    if request.navigation.requires_elevator:
+        parts.append("Take the elevator to your level — located near every main gate.")
+    if request.navigation.destination_detail:
+        parts.append(f"Your specific destination: {request.navigation.destination_detail}.")
+    return parts
+
+
+def _build_a11y_notes(request: AssistRequest, estimated_minutes: float) -> str:
+    """Return role-specific accessibility guidance note for the navigation card."""
+    has_mobility = _has_mobility_restriction(request)
+    if request.profile.visual_impairment:
+        return (
+            "Audio wayfinding beacons are active on the main concourse. "
+            "Request a sighted guide from any volunteer in a green vest."
+        )
+    if has_mobility:
+        return (
+            "Accessible routes are marked with blue floor arrows. "
+            f"Elevators are located at each main gate. Estimated accessible route time: {estimated_minutes} min."
+        )
+    if request.profile.hearing_impairment:
+        return (
+            "LED ticker boards at every junction display real-time crowd and gate status. "
+            "Stadium announcements are also shown as text on all concourse screens."
+        )
+    return "Standard route — no accessibility adjustments required."
 
 
 def compute_navigation(
@@ -233,86 +355,34 @@ def compute_navigation(
     """Compute personalised navigation guidance from current zone to destination.
 
     Formula:
-        walk_speed = WALK_SPEED_MOBILITY_AID if mobility restriction else
-                     (WALK_SPEED_CROWDED if LoS >= C else WALK_SPEED_FREE_FLOW)
-        base_distance = DESTINATION_BASE_DISTANCE_M[destination]
-        accessible_distance = base_distance × ACCESSIBILITY_ROUTE_EXTRA_FACTOR
-        base_minutes = distance / (walk_speed × 60)
+        walk_speed = _compute_walk_speed(request, los)
+        base_distance = _compute_route_distance(request)
+        crowd_factor = get_crowd_factor(los)
+        base_minutes = (distance / walk_speed) / 60 × crowd_factor
         elevator_extra = ACCESSIBILITY_ELEVATOR_EXTRA_MIN if requires_elevator
         estimated_minutes = base_minutes + elevator_extra
 
     Sources: TfL Pedestrian Comfort Guidance (2010); FIFA venue blueprints.
     """
-    destination = request.navigation.destination
     los = crowd.level_of_service
-
-    has_mobility = _has_mobility_restriction(request)
-    if has_mobility:
-        speed_ms = WALK_SPEED_MOBILITY_AID_MS
-    elif los in ("C", "D", "E", "F"):
-        speed_ms = WALK_SPEED_CROWDED_MS
-    else:
-        speed_ms = WALK_SPEED_FREE_FLOW_MS
-
-    base_dist = DESTINATION_BASE_DISTANCE_M[destination]
-    if request.navigation.requires_accessible_route or has_mobility:
-        base_dist *= ACCESSIBILITY_ROUTE_EXTRA_FACTOR
-
+    speed_ms = _compute_walk_speed(request, los)
+    dist_m = _compute_route_distance(request)
     crowd_factor = get_crowd_factor(los)
-    base_minutes = (base_dist / speed_ms) / 60.0 * crowd_factor
+
+    base_minutes = (dist_m / speed_ms) / 60.0 * crowd_factor
     elevator_extra = ACCESSIBILITY_ELEVATOR_EXTRA_MIN if request.navigation.requires_elevator else 0.0
     estimated_minutes = round(base_minutes + elevator_extra, 1)
 
+    route_parts = _build_route_parts(request, los)
+    a11y_notes = _build_a11y_notes(request, estimated_minutes)
+    alternative_route = ALTERNATIVE_ROUTES.get(
+        request.navigation.destination,
+        "Follow stadium wayfinding signage for alternatives.",
+    )
     crowd_level = FRUIN_LOS[los][2]
 
-    route_parts: list[str] = [
-        f"From {request.venue.current_zone}, head towards the nearest"
-        f" {destination.value.replace('_', ' ')} signage.",
-    ]
-    if los in ("D", "E", "F"):
-        route_parts.append("Follow the marked crowd-flow corridor to avoid congestion.")
-    if request.navigation.requires_accessible_route or request.navigation.requires_elevator:
-        route_parts.append("Use the accessible route marked with the blue wheelchair symbol.")
-    if request.navigation.requires_elevator:
-        route_parts.append("Take the elevator to your level — located near every main gate.")
-    if request.navigation.destination_detail:
-        route_parts.append(f"Your specific destination: {request.navigation.destination_detail}.")
-
-    route_description = " ".join(route_parts)
-
-    alt_routes: dict[DestinationType, str] = {
-        DestinationType.seat:          "Alternative: Enter via the next gate along the concourse to reduce walking distance.",
-        DestinationType.restroom:      "Alternative: Family restrooms are near every gate entrance — typically less congested.",
-        DestinationType.food_beverage: "Alternative: Mobile kiosks on the upper concourse often have shorter queues.",
-        DestinationType.exit:          "Alternative: Use any numbered gate exit — all connect to the external transport concourse.",
-        DestinationType.transport_hub: "Alternative: Shuttle pickup is available at all main gate exits.",
-        DestinationType.medical:       "Alternative: Volunteer first-aiders are stationed at every gate — flag one for immediate help.",
-        DestinationType.gate:          "Alternative: Any marked gate along your concourse level will accept your ticket.",
-        DestinationType.fan_zone:      "Alternative: Fan zones are available at Gate A and Gate D — choose the less-crowded one.",
-        DestinationType.accessibility: "Alternative: Any volunteer in a green vest can escort you to accessibility services.",
-    }
-    alternative_route = alt_routes.get(destination, "Follow stadium wayfinding signage for alternatives.")
-
-    if request.profile.visual_impairment:
-        a11y_notes = (
-            "Audio wayfinding beacons are active on the main concourse. "
-            "Request a sighted guide from any volunteer in a green vest."
-        )
-    elif has_mobility:
-        a11y_notes = (
-            "Accessible routes are marked with blue floor arrows. "
-            f"Elevators are located at each main gate. Estimated accessible route time: {estimated_minutes} min."
-        )
-    elif request.profile.hearing_impairment:
-        a11y_notes = (
-            "LED ticker boards at every junction display real-time crowd and gate status. "
-            "Stadium announcements are also shown as text on all concourse screens."
-        )
-    else:
-        a11y_notes = "Standard route — no accessibility adjustments required."
-
     return NavigationGuidance(
-        route_description=route_description,
+        route_description=" ".join(route_parts),
         estimated_minutes=estimated_minutes,
         crowd_level=crowd_level,  # type: ignore[arg-type]
         alternative_route=alternative_route,
@@ -320,111 +390,107 @@ def compute_navigation(
     )
 
 
-def compute_transport_options(request: AssistRequest) -> list[TransportOption]:
-    """Generate ordered transport options for the fan's journey direction.
+def _build_transport_option(
+    mode: TransportMode,
+    request: AssistRequest,
+) -> TransportOption:
+    """Build a single TransportOption for *mode* based on current match phase and distance.
 
-    Wait times are computed as:
-        wait = TRANSPORT_WAIT_BASE_MIN[mode] × TRANSPORT_PHASE_MULTIPLIER[phase]
-    Journey times are estimated from distance_km and mode-specific average speed.
-
+    Wait time formula: TRANSPORT_WAIT_BASE_MIN[mode] × TRANSPORT_PHASE_MULTIPLIER[phase]
+    Journey time formula: (distance_km / speed_kmh) × 60 minutes
     Source: FIFA WC 2026 Host City Transportation Operation Plans (2024).
     """
     phase = request.venue.match_phase
-    dist = request.transport.distance_km
+    dist_km = request.transport.distance_km
+
+    wait = round(TRANSPORT_WAIT_BASE_MIN[mode] * TRANSPORT_PHASE_MULTIPLIER[phase], 1)
+    journey = round((dist_km / TRANSPORT_MODE_SPEEDS_KMH[mode]) * 60.0, 1)
+
+    direction_label = "to" if request.transport.direction.value == "arriving" else "from"
+    phase_label = phase.value.replace("_", " ")
+
+    if mode == TransportMode.shuttle:
+        departure = (
+            f"Designated FIFA Shuttle Bay — Gate B of "
+            f"{request.venue.venue.value.replace('_', ' ').title()}"
+        )
+    elif mode == TransportMode.walk:
+        departure = f"Main concourse exit — {request.venue.current_zone}"
+    else:
+        departure = TRANSPORT_DEPARTURE_POINTS[mode]
+
+    note_template = TRANSPORT_NOTES_TEMPLATE[mode]
+    notes = note_template.format(dir=direction_label, phase=phase_label)
+
+    return TransportOption(
+        mode=mode.value,
+        estimated_wait_minutes=wait,
+        estimated_journey_minutes=journey,
+        departure_point=departure,
+        notes=notes,
+    )
+
+
+def compute_transport_options(request: AssistRequest) -> list[TransportOption]:
+    """Generate ordered transport options for the fan's journey direction.
+
+    Each option is built by ``_build_transport_option``. The preferred mode
+    is sorted first; remaining options are sorted by total time (wait + journey).
+
+    Source: FIFA WC 2026 Host City Transportation Operation Plans (2024).
+    """
     preferred = request.transport.transport_mode
-    direction = request.transport.direction
-
-    # Average journey speeds by mode (km/h) — FIFA TOPs estimates
-    mode_speeds_kmh: dict[TransportMode, float] = {
-        TransportMode.walk:      5.0,
-        TransportMode.shuttle:  35.0,
-        TransportMode.metro:    40.0,
-        TransportMode.rideshare: 30.0,
-        TransportMode.car:      25.0,
-    }
-
-    options: list[TransportOption] = []
-
-    for mode in TransportMode:
-        base_wait = TRANSPORT_WAIT_BASE_MIN[mode]
-        phase_mult = TRANSPORT_PHASE_MULTIPLIER[phase]
-        wait = round(base_wait * phase_mult, 1)
-        journey = round((dist / mode_speeds_kmh[mode]) * 60.0, 1)
-
-        departure_points: dict[TransportMode, str] = {
-            TransportMode.shuttle:  f"Designated FIFA Shuttle Bay — Gate B of {request.venue.venue.value.replace('_', ' ').title()}",
-            TransportMode.metro:    "Stadium Metro Station — follow green 'Metro' signs from main concourse",
-            TransportMode.rideshare: "Rideshare pickup zone — East car park perimeter road",
-            TransportMode.walk:     f"Main concourse exit — {request.venue.current_zone}",
-            TransportMode.car:      "Car park P1/P2 — follow blue 'P' signs from all exits",
-        }
-
-        direction_label = "to" if direction.value == "arriving" else "from"
-        notes_map: dict[TransportMode, str] = {
-            TransportMode.shuttle:  f"Free FIFA shuttle {direction_label} stadium. Runs every 8 min during match day.",
-            TransportMode.metro:    f"Dedicated match-day metro service {direction_label} city centre. No surcharge.",
-            TransportMode.rideshare: f"Rideshare surge likely during {phase.value.replace('_', ' ')}. Book in advance.",
-            TransportMode.walk:     "Walking recommended only within 1 km. Follow pedestrian wayfinding.",
-            TransportMode.car:      "Parking passes must be pre-purchased. Follow steward directions.",
-        }
-
-        options.append(TransportOption(
-            mode=mode.value,
-            estimated_wait_minutes=wait,
-            estimated_journey_minutes=journey,
-            departure_point=departure_points[mode],
-            notes=notes_map[mode],
-        ))
-
-    # Sort: preferred mode first, then by total time (wait + journey)
-    options.sort(key=lambda o: (o.mode != preferred.value, o.estimated_wait_minutes + o.estimated_journey_minutes))
+    options = [_build_transport_option(mode, request) for mode in TransportMode]
+    options.sort(
+        key=lambda o: (o.mode != preferred.value, o.estimated_wait_minutes + o.estimated_journey_minutes)
+    )
     return options
 
 
-def generate_alerts(
-    request: AssistRequest,
-    crowd: CrowdStatus,
-) -> list[OperationalAlert]:
-    """Generate prioritised operational alerts based on crowd status and match phase.
+def _add_crowd_density_alert(
+    occ: float,
+    zone: str,
+    alerts: list[OperationalAlert],
+) -> None:
+    """Append a crowd density alert if occupancy exceeds threshold.
 
-    Alert logic:
-    - Red crowd alert (>= 85% occupancy): critical crowd management alert.
-    - Amber crowd alert (>= 70% occupancy): warning crowd advisory.
-    - Halftime or post-match + high density: concourse surge warning.
-    - Medical alert: always present if LoS F (life-safety concern).
-    - Accessibility alert: if fan has mobility needs and LoS >= D.
-
-    Source: FIFA Safety Manual (2021), Section 3.2 and Section 5.1.
+    Source: FIFA Safety Manual (2021), Section 3.2.
     """
-    alerts: list[OperationalAlert] = []
-    occ = request.venue.crowd_density_pct
-    phase = request.venue.match_phase
-    los = crowd.level_of_service
-
-    if occ >= 85.0:
+    if occ >= ALERT_THRESHOLD_RED:
         alerts.append(OperationalAlert(
             title="Critical Crowd Density",
             severity=AlertSeverity.critical,
-            zone=request.venue.current_zone,
+            zone=zone,
             action_required=(
                 "Activate crowd dispersal protocol. Open additional concourse corridors. "
                 "Direct fans to overflow areas via public address system."
             ),
         ))
-    elif occ >= 70.0:
+    elif occ >= ALERT_THRESHOLD_AMBER:
         alerts.append(OperationalAlert(
             title="Elevated Crowd Density",
             severity=AlertSeverity.warning,
-            zone=request.venue.current_zone,
+            zone=zone,
             action_required=(
                 "Increase volunteer presence at main junctions. "
                 "Monitor ingress rate and consider selective gate pacing."
             ),
         ))
 
-    if phase in (MatchPhase.halftime, MatchPhase.post_match) and occ >= 60.0:
+
+def _add_surge_alert(
+    phase: MatchPhase,
+    occ: float,
+    alerts: list[OperationalAlert],
+) -> None:
+    """Append a concourse surge warning at halftime/post-match if density is elevated.
+
+    Source: FIFA Safety Manual (2021), Section 5.1.
+    """
+    if phase in (MatchPhase.halftime, MatchPhase.post_match) and occ >= ALERT_THRESHOLD_SURGE:
+        phase_label = "Halftime" if phase == MatchPhase.halftime else "Post-Match"
         alerts.append(OperationalAlert(
-            title=f"{'Halftime' if phase == MatchPhase.halftime else 'Post-Match'} Concourse Surge Expected",
+            title=f"{phase_label} Concourse Surge Expected",
             severity=AlertSeverity.warning,
             zone="All Concourses",
             action_required=(
@@ -434,11 +500,17 @@ def generate_alerts(
             ),
         ))
 
+
+def _add_los_f_alert(los: str, zone: str, alerts: list[OperationalAlert]) -> None:
+    """Append a life-safety alert when Fruin LoS F is reached.
+
+    Source: FIFA Safety Manual (2021), Section 3.2 — crush risk threshold.
+    """
     if los == "F":
         alerts.append(OperationalAlert(
             title="Life-Safety Crowd Risk — Fruin LoS F",
             severity=AlertSeverity.critical,
-            zone=request.venue.current_zone,
+            zone=zone,
             action_required=(
                 "Immediately contact Venue Safety Officer. "
                 "Activate emergency crowd management procedures. "
@@ -446,6 +518,16 @@ def generate_alerts(
             ),
         ))
 
+
+def _add_accessibility_alert(
+    request: AssistRequest,
+    los: str,
+    alerts: list[OperationalAlert],
+) -> None:
+    """Append an accessibility warning if mobility-restricted fan is in high-density zone.
+
+    Source: FIFA Accessibility Standards for Venue Operations (2023).
+    """
     if _has_mobility_restriction(request) and los in ("D", "E", "F"):
         alerts.append(OperationalAlert(
             title="Accessible Route Congestion Risk",
@@ -457,11 +539,37 @@ def generate_alerts(
             ),
         ))
 
+
+def generate_alerts(
+    request: AssistRequest,
+    crowd: CrowdStatus,
+) -> list[OperationalAlert]:
+    """Generate prioritised operational alerts based on crowd status and match phase.
+
+    Delegates to four focused helpers — each responsible for one alert category:
+    - _add_crowd_density_alert: red/amber occupancy thresholds.
+    - _add_surge_alert: halftime/post-match concourse surge warning.
+    - _add_los_f_alert: life-safety Fruin LoS F alert.
+    - _add_accessibility_alert: mobility-restricted fan in high-density zone.
+
+    Source: FIFA Safety Manual (2021), Sections 3.2 and 5.1.
+    """
+    alerts: list[OperationalAlert] = []
+    occ = request.venue.crowd_density_pct
+    phase = request.venue.match_phase
+    los = crowd.level_of_service
+    zone = request.venue.current_zone
+
+    _add_crowd_density_alert(occ, zone, alerts)
+    _add_surge_alert(phase, occ, alerts)
+    _add_los_f_alert(los, zone, alerts)
+    _add_accessibility_alert(request, los, alerts)
+
     if not alerts:
         alerts.append(OperationalAlert(
             title="Normal Operations",
             severity=AlertSeverity.info,
-            zone=request.venue.current_zone,
+            zone=zone,
             action_required="No immediate action required. Continue standard monitoring.",
         ))
 
