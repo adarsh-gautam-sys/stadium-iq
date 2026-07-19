@@ -81,6 +81,39 @@ Applied to **every** HTTP response (GET and POST):
 | `Referrer-Policy` | `strict-origin-when-cross-origin` |
 | `Strict-Transport-Security` | `max-age=63072000; includeSubDomains; preload` |
 | `Content-Security-Policy` | `default-src 'self'; frame-ancestors 'none'; …` |
+| `Permissions-Policy` | `camera=(), microphone=(), geolocation=()` |
+| `X-Permitted-Cross-Domain-Policies` | `none` |
+
+## Code Quality Design
+
+All empirical thresholds are extracted as named module-level constants in `stadium.py`:
+
+| Constant | Value | Source |
+|---|---|---|
+| `ALERT_THRESHOLD_RED` | 85.0% | FIFA Safety Manual (2021) §3.2 |
+| `ALERT_THRESHOLD_AMBER` | 70.0% | FIFA Safety Manual (2021) §3.2 |
+| `ALERT_THRESHOLD_SURGE` | 60.0% | FIFA Safety Manual (2021) §5.1 |
+| `FRUIN_MAX_DENSITY` | 3.0 p/m² | Fruin (1971), Chapter 4 |
+| `WALK_SPEED_FREE_FLOW_MS` | 1.2 m/s | TfL Pedestrian Comfort (2010) |
+| `WALK_SPEED_CROWDED_MS` | 0.8 m/s | TfL Pedestrian Comfort (2010) |
+| `WALK_SPEED_MOBILITY_AID_MS` | 0.5 m/s | TfL Accessibility Design (2010) |
+
+`compute_navigation()` is decomposed into focused private helpers:
+- `_compute_walk_speed()`: selects speed from profile and LoS (≤10 lines)
+- `_compute_route_distance()`: computes accessible-route distance adjustment (≤10 lines)
+- `_build_route_parts()`: builds ordered route instruction strings (≤15 lines)
+- `_build_a11y_notes()`: returns accessibility-specific note per impairment type (≤15 lines)
+
+`generate_alerts()` is decomposed into:
+- `_add_crowd_density_alert()`: red/amber density threshold alerts
+- `_add_surge_alert()`: halftime/post-match concourse surge warning
+- `_add_los_f_alert()`: life-safety Fruin LoS F alert
+- `_add_accessibility_alert()`: mobility-restricted fan in high-density zone
+
+Transport computation is extracted into `_build_transport_option()` eliminating
+inline dicts inside loops. All module-level lookup tables (`LOS_RECOMMENDATIONS`,
+`ALTERNATIVE_ROUTES`, `TRANSPORT_MODE_SPEEDS_KMH`, `TRANSPORT_DEPARTURE_POINTS`,
+`TRANSPORT_NOTES_TEMPLATE`) enable O(1) lookup without repeated object construction.
 
 ## Sequential Thinking MCP Usage
 
@@ -101,3 +134,4 @@ All placeholder tokens were eliminated in Phase 0 before any code was written.
 - **Memory**: 512Mi
 - **CPU**: 1 vCPU
 - **Liveness probe**: `GET /health` → `{"status":"ok"}`
+

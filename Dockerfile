@@ -9,8 +9,10 @@ WORKDIR /app
 
 # Pin ALL deps with exact versions — avoids supply-chain drift
 # Run pip-audit after updating to verify no CVEs
+# starlette is a transitive dep of fastapi — fastapi 0.139.x bundles starlette >=1.3.x
+# which resolves PYSEC-2026-161/248/249/2280/2281 CVEs fixed in starlette 1.3.1+
 RUN pip install --no-cache-dir \
-    fastapi==0.115.12 \
+    fastapi==0.139.2 \
     "uvicorn[standard]==0.34.3" \
     pydantic==2.11.7 \
     pydantic-settings==2.9.1 \

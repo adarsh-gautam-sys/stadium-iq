@@ -277,3 +277,109 @@ def test_wheelchair_increases_confidence() -> None:
     req_base = make_request(mobility_aid="none")
     req_wheel = make_request(mobility_aid="wheelchair")
     assert calculate_confidence(req_wheel) > calculate_confidence(req_base)
+
+
+# ── New coverage tests — targets uncovered lines in stadium.py ────────────────
+
+def test_fruin_los_c_grade_mapped_correctly() -> None:
+    """Moderate occupancy at kickoff maps to LoS C (density_proxy 0.50–0.70)."""
+    # kickoff multiplier = 1.0; effective = 22% → proxy = 0.66 → LoS C
+    result = get_fruin_los(22.0, MatchPhase.kickoff)
+    assert result == "C"
+
+
+def test_fruin_los_d_grade_mapped_correctly() -> None:
+    """High occupancy at kickoff maps to LoS D (density_proxy 0.70–1.00)."""
+    # kickoff multiplier = 1.0; effective = 28% → proxy = 0.84 → LoS D
+    result = get_fruin_los(28.0, MatchPhase.kickoff)
+    assert result == "D"
+
+
+def test_free_flow_walk_speed_for_clear_concourse() -> None:
+    """A fan with no mobility restriction at LoS A/B uses free-flow walk speed."""
+    from app.stadium import WALK_SPEED_FREE_FLOW_MS, _compute_walk_speed
+    req = make_request(crowd_density_pct=5.0, match_phase="pre_match")
+    crowd = compute_crowd_status(req)
+    # At 5% pre_match: effective = 5 * 0.40 = 2% → proxy 0.06 → LoS A
+    assert crowd.level_of_service == "A"
+    speed = _compute_walk_speed(req, crowd.level_of_service)
+    assert speed == WALK_SPEED_FREE_FLOW_MS
+
+
+def test_navigation_visual_impairment_note() -> None:
+    """Visual impairment flag returns audio wayfinding guidance note."""
+    req = AssistRequest.model_validate({
+        "profile": {
+            "name": "Test",
+            "role": "fan",
+            "language": "en",
+            "mobility_aid": "none",
+            "visual_impairment": True,
+            "hearing_impairment": False,
+            "party_size": 1,
+        },
+        "venue": {
+            "venue": "sofi_stadium",
+            "section": "100",
+            "current_zone": "Gate B",
+            "match_phase": "arrival",
+            "crowd_density_pct": 40.0,
+        },
+        "navigation": {
+            "destination": "seat",
+            "destination_detail": "",
+            "requires_elevator": False,
+            "requires_accessible_route": False,
+        },
+        "transport": {"transport_mode": "shuttle", "direction": "arriving", "distance_km": 2.0},
+    })
+    crowd = compute_crowd_status(req)
+    nav = compute_navigation(req, crowd)
+    assert "audio" in nav.accessibility_notes.lower() or "beacon" in nav.accessibility_notes.lower()
+
+
+def test_navigation_hearing_impairment_note() -> None:
+    """Hearing impairment flag returns LED ticker board guidance note."""
+    req = AssistRequest.model_validate({
+        "profile": {
+            "name": "Test",
+            "role": "fan",
+            "language": "en",
+            "mobility_aid": "none",
+            "visual_impairment": False,
+            "hearing_impairment": True,
+            "party_size": 1,
+        },
+        "venue": {
+            "venue": "sofi_stadium",
+            "section": "100",
+            "current_zone": "Gate B",
+            "match_phase": "arrival",
+            "crowd_density_pct": 40.0,
+        },
+        "navigation": {
+            "destination": "seat",
+            "destination_detail": "",
+            "requires_elevator": False,
+            "requires_accessible_route": False,
+        },
+        "transport": {"transport_mode": "shuttle", "direction": "arriving", "distance_km": 2.0},
+    })
+    crowd = compute_crowd_status(req)
+    nav = compute_navigation(req, crowd)
+    assert "led" in nav.accessibility_notes.lower() or "ticker" in nav.accessibility_notes.lower()
+
+
+def test_named_constants_match_expected_values() -> None:
+    """Named threshold constants have the expected values from FIFA Safety Manual."""
+    from app.stadium import (
+        ALERT_THRESHOLD_AMBER,
+        ALERT_THRESHOLD_RED,
+        ALERT_THRESHOLD_SURGE,
+        FRUIN_MAX_DENSITY,
+    )
+    assert ALERT_THRESHOLD_RED == 85.0    # FIFA Safety Manual §3.2 red threshold
+    assert ALERT_THRESHOLD_AMBER == 70.0  # FIFA Safety Manual §3.2 amber threshold
+    assert ALERT_THRESHOLD_SURGE == 60.0  # Surge warning threshold
+    assert FRUIN_MAX_DENSITY == 3.0       # Max density proxy (p/m²)
+
